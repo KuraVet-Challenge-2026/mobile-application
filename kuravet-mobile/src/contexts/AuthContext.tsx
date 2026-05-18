@@ -5,7 +5,6 @@ import { Alert } from 'react-native';
 export const AuthContext = createContext<any>({});
 
 export const AuthProvider = ({ children }: any) => {
-
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -17,6 +16,11 @@ export const AuthProvider = ({ children }: any) => {
   }, []);
 
   const login = async (email: string, senha: string) => {
+    if (!email.includes('@')) {
+      Alert.alert('Erro de Validação', 'Por favor, insira um e-mail válido contendo @.');
+      return;
+    }
+
     if (email && senha) {
       const mockUser = { id: '1', email };
       setUser(mockUser);
