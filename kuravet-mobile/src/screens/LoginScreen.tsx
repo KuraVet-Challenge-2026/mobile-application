@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
 import { theme } from '../theme/colors';
 
@@ -7,6 +7,17 @@ export default function LoginScreen() {
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [isLoading, setIsLoading] = useState(false); 
+
+  const handleLogin = () => {
+    setIsLoading(true); 
+    
+    
+    setTimeout(() => {
+      login(email, senha);
+      setIsLoading(false); 
+    }, 1500);
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -30,8 +41,17 @@ export default function LoginScreen() {
           value={senha}
           onChangeText={setSenha}
         />
-        <TouchableOpacity style={styles.button} onPress={() => login(email, senha)}>
-          <Text style={styles.buttonText}>Entrar</Text>
+        
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleLogin}
+          disabled={isLoading} 
+        >
+          {isLoading ? (
+            <ActivityIndicator color={theme.colors.white} />
+          ) : (
+            <Text style={styles.buttonText}>Entrar</Text>
+          )}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
