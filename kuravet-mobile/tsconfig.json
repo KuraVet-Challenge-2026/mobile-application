@@ -1,7 +1,7 @@
 {
-  "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
-    "strict": true
+    "moduleResolution": "node",
+    "jsx": "react-native", 
+    "allowSyntheticDefaultImports": true
   }
 }
-
