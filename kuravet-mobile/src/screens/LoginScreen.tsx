@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
 import { theme } from '../theme/colors';
 
@@ -9,7 +9,10 @@ export default function LoginScreen() {
   const [senha, setSenha] = useState('');
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <Text style={styles.title}>KuraVet</Text>
       <View style={styles.card}>
         <TextInput
@@ -18,6 +21,7 @@ export default function LoginScreen() {
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
+          keyboardType="email-address"
         />
         <TextInput
           style={styles.input}
@@ -30,7 +34,7 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
