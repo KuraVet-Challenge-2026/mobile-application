@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Image } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
 import { theme } from '../theme/colors';
 
@@ -8,7 +8,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isRegisterMode, setIsRegisterMode] = useState(false); // Controla se estamos a cadastrar ou a entrar
+  const [isRegisterMode, setIsRegisterMode] = useState(false); 
 
   const handleAction = async () => {
     setIsLoading(true);
@@ -37,6 +37,12 @@ export default function LoginScreen() {
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Image
+        source={require('../../assets/logo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+
       <Text style={styles.title}>KuraVet</Text>
       
       <View style={styles.card}>
@@ -74,7 +80,6 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
-        {/* alternar entre Login e Cadastro */}
         <TouchableOpacity 
           style={styles.switchButton} 
           onPress={() => {
@@ -95,6 +100,14 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', padding: 20 },
+  
+  logo: {
+    width: 120, 
+    height: 120, 
+    alignSelf: 'center', 
+    marginBottom: 5, 
+  },
+
   title: { fontSize: 42, fontWeight: 'bold', color: theme.colors.primary, textAlign: 'center', marginBottom: 10 },
   subtitle: { fontSize: 18, color: theme.colors.primary, textAlign: 'center', marginBottom: 20, fontWeight: 'bold' },
   card: { backgroundColor: theme.colors.white, padding: 25, borderRadius: 15, elevation: 5 },
