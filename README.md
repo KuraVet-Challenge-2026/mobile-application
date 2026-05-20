@@ -4,7 +4,7 @@ Aplicativo móvel desenvolvido para o Challenge FIAP, focado na gestão de saúd
 
 ---
 
-# 👥 Equipa de Desenvolvimento
+# 👥 Equipe de Desenvolvimento
 
 - **Pedro Henrique Luiz Alves Duarte**
 - **Guilherme Macedo Martins**
