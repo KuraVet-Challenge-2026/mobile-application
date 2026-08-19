@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Image,
   ImageSourcePropType,
   KeyboardAvoidingView,
@@ -15,8 +16,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 import type { RootStackParamList } from '../routes';
+import { auth } from '../config/firebaseConfig';
+import { getFirebaseAuthErrorMessage } from '../utils/firebaseErrorMessage';
 
 type CadastroNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cadastro'>;
 
@@ -51,13 +55,10 @@ export default function Cadastro() {
   const [isLoading, setIsLoading] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
 
-  // Por enquanto simula a chamada de rede com um setTimeout. Quando o endpoint
-  // de cadastro do backend Java estiver pronto, trocar por:
-  // await api.post('/auth/cadastro', { nome, email, senha });
   async function handleCadastro() {
     if (isLoading) return;
 
-    if (!nome || !email || !senha || !confirmarSenha) {
+    if (!nome.trim() || !email.trim() || !senha || !confirmarSenha) {
       setErro('Preencha todos os campos para continuar.');
       return;
     }
@@ -68,12 +69,20 @@ export default function Cadastro() {
     setErro('');
 
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
+    try {
+      const { user } = await createUserWithEmailAndPassword(auth, email.trim(), senha);
+      // Guarda o nome informado no perfil do usuário (não é enviado no create).
+      await updateProfile(user, { displayName: nome.trim() });
 
-    // `reset` em vez de `navigate`: depois de cadastrado, o botão "voltar" do
-    // dispositivo não deve levar o usuário de volta para o formulário.
-    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      // `reset` em vez de `navigate`: depois de cadastrado, o botão "voltar" do
+      // dispositivo não deve levar o usuário de volta para o formulário.
+      // Não zeramos `isLoading` aqui de propósito: a tela é desmontada pela
+      // navegação, então não há necessidade (e evita setState após unmount).
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+    } catch (error) {
+      setIsLoading(false);
+      Alert.alert('Não foi possível cadastrar', getFirebaseAuthErrorMessage(error));
+    }
   }
 
   const mostrarLogo = !!logoSource && !logoFailed;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Image,
   ImageSourcePropType,
   KeyboardAvoidingView,
@@ -15,8 +16,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 import type { RootStackParamList } from '../routes';
+import { auth } from '../config/firebaseConfig';
+import { getFirebaseAuthErrorMessage } from '../utils/firebaseErrorMessage';
 
 type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -49,19 +53,27 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
 
-  // Por enquanto simula a chamada de rede com um setTimeout. Quando o endpoint
-  // de autenticação do backend Java estiver pronto, trocar por:
-  // await api.post('/auth/login', { email, senha });
   async function handleLogin() {
     if (isLoading) return;
 
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
+    if (!email.trim() || !senha) {
+      Alert.alert('Campos obrigatórios', 'Informe e-mail e senha para continuar.');
+      return;
+    }
 
-    // `reset` em vez de `navigate`: depois de logado, o botão "voltar" do
-    // dispositivo não deve levar o usuário de volta para a tela de Login.
-    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), senha);
+
+      // `reset` em vez de `navigate`: depois de logado, o botão "voltar" do
+      // dispositivo não deve levar o usuário de volta para a tela de Login.
+      // Não zeramos `isLoading` aqui de propósito: a tela é desmontada pela
+      // navegação, então não há necessidade (e evita setState após unmount).
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+    } catch (error) {
+      setIsLoading(false);
+      Alert.alert('Não foi possível entrar', getFirebaseAuthErrorMessage(error));
+    }
   }
 
   const mostrarLogo = !!logoSource && !logoFailed;
