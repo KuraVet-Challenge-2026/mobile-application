@@ -4,8 +4,6 @@ import {
   ScrollView,
   View,
   Text,
-  Image,
-  ImageBackground,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -15,119 +13,185 @@ import { useQuery } from '@tanstack/react-query';
 
 import api from '../services/api';
 
-const backgroundImg = require('../../assets/background.jpg');
-const logoImg = require('../../assets/logo.png');
-
-// GET /api/pets — baseURL do axios (src/services/api.js) já termina em "/api".
-async function fetchPets() {
-  const { data } = await api.get('/pets');
+// GET /consultas — baseURL do axios (src/services/api.js) já termina em "/api".
+async function fetchConsultas() {
+  const { data } = await api.get('/consultas');
   return data;
+}
+
+// Dados genéricos exibidos apenas para o layout não quebrar caso a API
+// responda com sucesso mas sem nenhum registro ainda cadastrado.
+const CONSULTAS_FALLBACK = [
+  {
+    id: 'fallback-1',
+    petNome: 'Thor',
+    tutorNome: 'Ana Souza',
+    veterinario: 'Dra. Camila Reis',
+    data: 'Hoje às 15:30',
+    status: 'Agendada',
+  },
+  {
+    id: 'fallback-2',
+    petNome: 'Mel',
+    tutorNome: 'Bruno Lima',
+    veterinario: 'Dr. Felipe Nogueira',
+    data: 'Amanhã às 09:00',
+    status: 'Confirmada',
+  },
+  {
+    id: 'fallback-3',
+    petNome: 'Nina',
+    tutorNome: 'Carla Dias',
+    veterinario: 'Dra. Camila Reis',
+    data: '21/08 às 11:15',
+    status: 'Agendada',
+  },
+];
+
+const QUICK_ACTIONS = [
+  { key: 'consulta', label: 'Nova Consulta', icon: '🩺', route: 'Teleconsulta' },
+  { key: 'pets', label: 'Meus Pets', icon: '🐾', route: 'CadastroPet' },
+  { key: 'historico', label: 'Histórico', icon: '📋', route: 'HistoricoDiagnostico' },
+];
+
+const STATUS_STYLES = {
+  Agendada: { backgroundColor: '#C9DEF2', color: '#1E4E79' },
+  Confirmada: { backgroundColor: '#9FC6EA', color: '#12385C' },
+  Concluída: { backgroundColor: '#DDEBF7', color: '#2D6FA3' },
+};
+
+function StatusBadge({ status }) {
+  const style = STATUS_STYLES[status] ?? STATUS_STYLES.Agendada;
+  return (
+    <View style={[styles.statusBadge, { backgroundColor: style.backgroundColor }]}>
+      <Text style={[styles.statusBadgeText, { color: style.color }]}>{status ?? 'Agendada'}</Text>
+    </View>
+  );
+}
+
+function ConsultaCard({ consulta, isFallback }) {
+  return (
+    <View style={styles.consultaCard}>
+      {/* Placeholder: futuramente receberá a foto real do pet/tutor */}
+      <View style={styles.consultaThumb} />
+
+      <View style={styles.consultaInfo}>
+        <View style={styles.consultaInfoHeader}>
+          <Text style={styles.consultaPetNome} numberOfLines={1}>
+            {consulta?.petNome ?? consulta?.pet?.nome ?? 'Pet sem nome'}
+          </Text>
+          {isFallback && (
+            <View style={styles.previewTag}>
+              <Text style={styles.previewTagText}>Exemplo</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.consultaDetail} numberOfLines={1}>
+          {consulta?.veterinario ?? consulta?.medico ?? 'Veterinário a definir'}
+        </Text>
+        <Text style={styles.consultaData}>{consulta?.data ?? consulta?.dataHora ?? 'Data a definir'}</Text>
+      </View>
+
+      <StatusBadge status={consulta?.status} />
+    </View>
+  );
 }
 
 export default function Home() {
   const navigation = useNavigation();
 
   const {
-    data: pets,
+    data: consultas,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['pets'],
-    queryFn: fetchPets,
+    queryKey: ['consultas'],
+    queryFn: fetchConsultas,
   });
+
+  const temDadosReais = !isLoading && !isError && Array.isArray(consultas) && consultas.length > 0;
+  const listaExibida = temDadosReais ? consultas : CONSULTAS_FALLBACK;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Hero: ilustração já traz o degradê claro -> azul base do Figma */}
-        <ImageBackground source={backgroundImg} style={styles.hero} resizeMode="cover">
-          <View style={styles.header}>
-            <Image source={logoImg} style={styles.logo} resizeMode="contain" />
-            <TouchableOpacity
-              style={styles.menuButton}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Perfil')}
-            >
-              <View style={styles.menuBar} />
-              <View style={styles.menuBar} />
-              <View style={styles.menuBar} />
-            </TouchableOpacity>
+        {/* Header: saudação + placeholder de foto de perfil */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Olá, tudo bem? 👋</Text>
+            <Text style={styles.greetingSubtitle}>Vamos cuidar do seu pet hoje?</Text>
           </View>
-
-          <View style={styles.titleWrap}>
-            <Text style={styles.title}>
-              Atendimento <Text style={styles.titleAccent}>online</Text>
-              {'\n'}em minutos.
-            </Text>
-            <Text style={styles.subtitle}>O jeito mais fácil de falar com veterinários</Text>
-          </View>
-
-          <View style={styles.heroSpacer} />
 
           <TouchableOpacity
-            style={styles.ctaButton}
-            activeOpacity={0.85}
-            onPress={() => navigation.navigate('Teleconsulta')}
+            style={styles.avatarPlaceholder}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('Perfil')}
+          />
+        </View>
+
+        {/* Ações rápidas */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ações Rápidas</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.quickActionsRow}
           >
-            <Text style={styles.ctaButtonText}>AGENDE</Text>
-          </TouchableOpacity>
-        </ImageBackground>
+            {QUICK_ACTIONS.map((action) => (
+              <TouchableOpacity
+                key={action.key}
+                style={styles.quickActionCard}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate(action.route)}
+              >
+                <View style={styles.quickActionIconWrap}>
+                  <Text style={styles.quickActionIcon}>{action.icon}</Text>
+                </View>
+                <Text style={styles.quickActionLabel}>{action.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-        {/* Conteúdo: fundo na cor predominante do Figma */}
-        <View style={styles.content}>
-          <View style={styles.card}>
-            <Text style={styles.cardText}>Descubra os melhores veterinários em poucos cliques</Text>
+        {/* Banner de destaque: espaço reservado para uma futura ilustração/imagem */}
+        <View style={styles.tipBanner}>
+          <View style={styles.tipBannerImagePlaceholder} />
+          <View style={styles.tipBannerTextWrap}>
+            <Text style={styles.tipBannerTitle}>Dica de saúde</Text>
+            <Text style={styles.tipBannerText}>
+              Mantenha as vacinas e vermífugos do seu pet sempre em dia.
+            </Text>
           </View>
-          <View style={styles.card}>
-            <Text style={styles.cardText}>Agende rápido e receba atendimento imediato</Text>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardText}>Vets qualificados, dados 100% protegidos</Text>
-          </View>
+        </View>
 
-          <Text style={styles.sectionTitle}>Pets cadastrados</Text>
+        {/* Sessão principal: feed de próximas consultas vindo da API */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Próximas Consultas</Text>
 
           {isLoading && (
             <View style={styles.loadingBox}>
-              <ActivityIndicator size="large" color="#F2994A" />
+              <ActivityIndicator color="#C9DEF2" size="large" />
             </View>
           )}
 
           {!isLoading && isError && (
-            <Text style={styles.errorText}>
-              Não foi possível carregar os dados da API. Verifique sua conexão e tente novamente.
-            </Text>
-          )}
-
-          {!isLoading && !isError && (!pets || pets.length === 0) && (
-            <Text style={styles.emptyText}>Nenhum pet cadastrado até o momento.</Text>
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>
+                Não foi possível carregar suas consultas agora. Verifique sua conexão e tente
+                novamente em instantes.
+              </Text>
+            </View>
           )}
 
           {!isLoading &&
             !isError &&
-            pets?.map((pet, index) => (
-              <View key={pet?.id ?? index} style={styles.petCard}>
-                <View style={styles.petAvatar}>
-                  <Text style={styles.petAvatarText}>
-                    {pet?.nome ? pet.nome.charAt(0).toUpperCase() : '?'}
-                  </Text>
-                </View>
-                <View style={styles.petInfo}>
-                  <Text style={styles.petName}>{pet?.nome ?? 'Pet sem nome'}</Text>
-                  <Text style={styles.petSpecies}>
-                    {pet?.especie ?? pet?.raca ?? 'Espécie não informada'}
-                  </Text>
-                </View>
-              </View>
+            listaExibida.map((consulta, index) => (
+              <ConsultaCard
+                key={consulta?.id ?? index}
+                consulta={consulta}
+                isFallback={!temDadosReais}
+              />
             ))}
-
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('HistoricoDiagnostico')}
-          >
-            <Text style={styles.secondaryButtonText}>Ver Histórico</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -141,174 +205,197 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 32,
   },
 
-  // ---- Hero (imagem de fundo com o filhote + celular) ----
-  hero: {
-    width: '100%',
-    minHeight: 540,
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 28,
-  },
+  // ---- Header ----
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#F2F7FC',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
-  logo: {
-    width: 110,
-    height: 34,
-  },
-  menuButton: {
-    width: 28,
-    height: 20,
-    justifyContent: 'space-between',
-  },
-  menuBar: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: '#2D6FA3',
-  },
-  titleWrap: {
-    marginTop: 16,
-  },
-  title: {
-    fontSize: 26,
+  greeting: {
+    fontSize: 20,
     fontWeight: '800',
     color: '#1E4E79',
-    lineHeight: 32,
-    textAlign: 'center',
   },
-  titleAccent: {
-    color: '#F2994A',
-  },
-  subtitle: {
-    marginTop: 8,
-    fontSize: 14,
+  greetingSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
     color: '#4C7EA8',
-    textAlign: 'center',
   },
-  heroSpacer: {
-    flex: 1,
-  },
-  ctaButton: {
-    alignSelf: 'center',
-    backgroundColor: '#F2994A',
-    paddingVertical: 14,
-    paddingHorizontal: 56,
-    borderRadius: 28,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  ctaButtonText: {
-    color: '#F2F7FC',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 1,
+  avatarPlaceholder: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#C9DEF2',
+    borderWidth: 2,
+    borderColor: '#F2F7FC',
   },
 
-  // ---- Conteúdo ----
-  content: {
-    flex: 1,
-    backgroundColor: '#DDEBF7',
+  // ---- Sessões genéricas ----
+  section: {
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 32,
+    marginTop: 24,
   },
-  card: {
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E4E79',
+    marginBottom: 14,
+  },
+
+  // ---- Ações rápidas ----
+  quickActionsRow: {
+    paddingRight: 8,
+    gap: 12,
+  },
+  quickActionCard: {
+    width: 104,
     backgroundColor: '#F2F7FC',
     borderRadius: 20,
     paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    marginRight: 12,
     shadowColor: '#1E4E79',
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,
   },
-  cardText: {
-    fontSize: 14,
-    color: '#2D6FA3',
-    textAlign: 'center',
-    fontWeight: '600',
+  quickActionIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#C9DEF2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
   },
-  sectionTitle: {
-    marginTop: 12,
-    marginBottom: 12,
-    fontSize: 18,
+  quickActionIcon: {
+    fontSize: 22,
+  },
+  quickActionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1E4E79',
+    textAlign: 'center',
+  },
+
+  // ---- Banner de dica ----
+  tipBanner: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F2F7FC',
+    borderRadius: 20,
+    padding: 16,
+  },
+  tipBannerImagePlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#C9DEF2',
+    marginRight: 14,
+  },
+  tipBannerTextWrap: {
+    flex: 1,
+  },
+  tipBannerTitle: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#1E4E79',
   },
+  tipBannerText: {
+    marginTop: 4,
+    fontSize: 12.5,
+    color: '#4C7EA8',
+    lineHeight: 18,
+  },
+
+  // ---- Feed de consultas ----
   loadingBox: {
     paddingVertical: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  errorBox: {
+    backgroundColor: '#F2F7FC',
+    borderRadius: 16,
+    padding: 16,
+  },
   errorText: {
     color: '#B3261E',
     fontSize: 14,
     textAlign: 'center',
-    paddingVertical: 16,
+    lineHeight: 20,
   },
-  emptyText: {
-    color: '#4C7EA8',
-    fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 16,
-  },
-  petCard: {
+  consultaCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F2F7FC',
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  petAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  consultaThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     backgroundColor: '#C9DEF2',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: 12,
   },
-  petAvatarText: {
-    color: '#1E4E79',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  petInfo: {
+  consultaInfo: {
     flex: 1,
+    marginRight: 10,
   },
-  petName: {
+  consultaInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  consultaPetNome: {
     fontSize: 15,
     fontWeight: '700',
     color: '#1E4E79',
+    flexShrink: 1,
   },
-  petSpecies: {
-    marginTop: 2,
-    fontSize: 13,
+  previewTag: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    backgroundColor: '#DDEBF7',
+  },
+  previewTagText: {
+    fontSize: 10,
+    fontWeight: '700',
     color: '#4C7EA8',
   },
-  secondaryButton: {
-    marginTop: 12,
-    alignSelf: 'center',
-    borderWidth: 1.5,
-    borderColor: '#C9DEF2',
-    backgroundColor: '#F2F7FC',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 24,
-  },
-  secondaryButtonText: {
+  consultaDetail: {
+    marginTop: 3,
+    fontSize: 13,
     color: '#2D6FA3',
-    fontSize: 14,
+  },
+  consultaData: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#4C7EA8',
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  statusBadgeText: {
+    fontSize: 11,
     fontWeight: '700',
   },
 });
