@@ -1,7 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import LoginScreen from '../screens/LoginScreen';
+import Login from '../screens/Login';
+import Cadastro from '../screens/Cadastro';
 import Home from '../screens/Home';
 import CadastroPetScreen from '../screens/CadastroPetScreen';
 import HistoricoDiagnosticoScreen from '../screens/HistoricoDiagnosticoScreen';
@@ -13,6 +14,7 @@ import PerfilScreen from '../screens/PerfilScreen';
 // `undefined`; quando alguma rota passar a receber params, tipe aqui.
 export type RootStackParamList = {
   Login: undefined;
+  Cadastro: undefined;
   Home: undefined;
   CadastroPet: undefined;
   HistoricoDiagnostico: undefined;
@@ -25,7 +27,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
   return (
     <Stack.Navigator initialRouteName="Login">
-      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+      <Stack.Screen name="Cadastro" component={Cadastro} options={{ headerShown: false }} />
       <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
       <Stack.Screen
         name="CadastroPet"
