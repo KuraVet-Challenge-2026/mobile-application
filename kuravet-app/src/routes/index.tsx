@@ -8,7 +8,19 @@ import HistoricoDiagnosticoScreen from '../screens/HistoricoDiagnosticoScreen';
 import TeleconsultaScreen from '../screens/TeleconsultaScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 
-const Stack = createNativeStackNavigator();
+// Lista central de rotas da stack, usada para tipar `useNavigation`/`useRoute`
+// em qualquer tela (ver src/screens/Home.tsx). Telas sem parâmetros usam
+// `undefined`; quando alguma rota passar a receber params, tipe aqui.
+export type RootStackParamList = {
+  Login: undefined;
+  Home: undefined;
+  CadastroPet: undefined;
+  HistoricoDiagnostico: undefined;
+  Teleconsulta: undefined;
+  Perfil: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (

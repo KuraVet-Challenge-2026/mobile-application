@@ -16,7 +16,7 @@ import AppNavigator from './src/routes';
  *   Java pode demorar/oscilar).
  * - refetchOnWindowFocus: desligado, pois em mobile não faz sentido como em web.
  *
- * O timeout que realmente "segura" a interface fica no axios (src/services/api.js).
+ * O timeout que realmente "segura" a interface fica no axios (src/services/api.ts).
  */
 const queryClient = new QueryClient({
   defaultOptions: {

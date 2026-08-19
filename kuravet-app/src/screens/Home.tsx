@@ -9,12 +9,18 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
 
 import api from '../services/api';
+import type { RootStackParamList } from '../routes';
 
-// GET /consultas — baseURL do axios (src/services/api.js) já termina em "/api".
-async function fetchConsultas() {
+type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
+// GET /consultas — baseURL do axios (src/services/api.ts) já termina em "/api".
+// TODO: tipar o retorno da API (payload real do backend Java) quando o
+// contrato de dados for definido; por ora usamos `any` propositalmente.
+async function fetchConsultas(): Promise<any> {
   const { data } = await api.get('/consultas');
   return data;
 }
@@ -48,20 +54,27 @@ const CONSULTAS_FALLBACK = [
   },
 ];
 
-const QUICK_ACTIONS = [
+// `route` tipado com as rotas reais da stack (RootStackParamList) para que
+// `navigation.navigate(action.route)` abaixo compile sem erros de TS.
+const QUICK_ACTIONS: {
+  key: string;
+  label: string;
+  icon: string;
+  route: keyof RootStackParamList;
+}[] = [
   { key: 'consulta', label: 'Nova Consulta', icon: '🩺', route: 'Teleconsulta' },
   { key: 'pets', label: 'Meus Pets', icon: '🐾', route: 'CadastroPet' },
   { key: 'historico', label: 'Histórico', icon: '📋', route: 'HistoricoDiagnostico' },
 ];
 
-const STATUS_STYLES = {
+const STATUS_STYLES: Record<string, { backgroundColor: string; color: string }> = {
   Agendada: { backgroundColor: '#C9DEF2', color: '#1E4E79' },
   Confirmada: { backgroundColor: '#9FC6EA', color: '#12385C' },
   Concluída: { backgroundColor: '#DDEBF7', color: '#2D6FA3' },
 };
 
-function StatusBadge({ status }) {
-  const style = STATUS_STYLES[status] ?? STATUS_STYLES.Agendada;
+function StatusBadge({ status }: { status?: string }) {
+  const style = (status && STATUS_STYLES[status]) || STATUS_STYLES.Agendada;
   return (
     <View style={[styles.statusBadge, { backgroundColor: style.backgroundColor }]}>
       <Text style={[styles.statusBadgeText, { color: style.color }]}>{status ?? 'Agendada'}</Text>
@@ -69,7 +82,9 @@ function StatusBadge({ status }) {
   );
 }
 
-function ConsultaCard({ consulta, isFallback }) {
+// `consulta` ainda não tem um tipo forte (payload da API não definido nesta
+// etapa da migração) — usamos `any` propositalmente aqui, conforme combinado.
+function ConsultaCard({ consulta, isFallback }: { consulta: any; isFallback: boolean }) {
   return (
     <View style={styles.consultaCard}>
       {/* Placeholder: futuramente receberá a foto real do pet/tutor */}
@@ -98,7 +113,7 @@ function ConsultaCard({ consulta, isFallback }) {
 }
 
 export default function Home() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeNavigationProp>();
 
   const {
     data: consultas,
