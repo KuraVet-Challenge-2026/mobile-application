@@ -14,10 +14,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import type { RootStackParamList } from '../routes';
 import api from '../services/api';
+import { auth } from '../config/firebaseConfig';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
 
 type CadastroPetNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CadastroPet'>;
@@ -34,12 +35,59 @@ const COLORS = {
 const ESPECIES = ['Cachorro', 'Gato'] as const;
 type Especie = (typeof ESPECIES)[number];
 
+const SEXOS = ['M', 'F'] as const;
+type Sexo = (typeof SEXOS)[number];
+
+const DATA_NASCIMENTO_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+// Formato "cru" que a API de tutores pode devolver — o backend Java ainda não
+// tem um contrato 100% fechado, então aceitamos algumas variações de nome de
+// campo (mesmo espírito defensivo já usado em Home.tsx para /consultas).
+type TutorApi = {
+  id?: number | string;
+  idTutor?: number | string;
+  nome?: string;
+  nomeCompleto?: string;
+  name?: string;
+  email?: string;
+};
+
+type Tutor = {
+  id: number;
+  nome: string;
+  email: string;
+};
+
+// GET /tutores — usada apenas para o "match silencioso" abaixo (encontrar o
+// tutor logado pelo e-mail do Firebase). A lista NUNCA é exibida na tela: em
+// um app de teleconsulta voltado ao tutor final, mostrar um seletor com todos
+// os tutores cadastrados seria um vazamento de dados de outras pessoas.
+// Tutores sem e-mail são descartados aqui, já que nunca poderiam ser
+// encontrados pelo match e só atrapalhariam a busca.
+async function fetchTutores(): Promise<Tutor[]> {
+  const { data } = await api.get<TutorApi[]>('/tutores');
+  if (!Array.isArray(data)) return [];
+
+  return data.reduce<Tutor[]>((tutores, item) => {
+    const idBruto = item.id ?? item.idTutor;
+    const id = typeof idBruto === 'string' ? Number(idBruto) : idBruto;
+    const nome = item.nome ?? item.nomeCompleto ?? item.name;
+
+    if (typeof id === 'number' && Number.isFinite(id) && nome && item.email) {
+      tutores.push({ id, nome, email: item.email });
+    }
+    return tutores;
+  }, []);
+}
+
 type NovoPetPayload = {
   nome: string;
   especie: Especie;
   raca: string;
-  idade: number;
   peso: number;
+  sexo: Sexo;
+  dataNascimento: string;
+  idTutor: number;
 };
 
 export default function CadastroPet() {
@@ -48,21 +96,33 @@ export default function CadastroPet() {
   const [nome, setNome] = useState('');
   const [especie, setEspecie] = useState<Especie | null>(null);
   const [raca, setRaca] = useState('');
-  const [idade, setIdade] = useState('');
   const [peso, setPeso] = useState('');
+  const [sexo, setSexo] = useState<Sexo | null>(null);
+  const [dataNascimento, setDataNascimento] = useState('');
   const [formErro, setFormErro] = useState('');
+
+  const {
+    data: tutores,
+    isLoading: isLoadingTutores,
+    isError: isErrorTutores,
+  } = useQuery({
+    queryKey: ['tutores'],
+    queryFn: fetchTutores,
+  });
 
   function limparFormulario() {
     setNome('');
     setEspecie(null);
     setRaca('');
-    setIdade('');
     setPeso('');
+    setSexo(null);
+    setDataNascimento('');
     setFormErro('');
   }
 
   // POST /pets — ajuste a rota caso o backend Java exponha outro caminho
-  // (ex.: '/animais'). O payload segue os campos coletados no formulário.
+  // (ex.: '/animais'). Payload 100% dinâmico: cada campo vem de um estado
+  // preenchido pelo usuário, sem nenhum valor mockado (ex.: idTutor fixo).
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: NovoPetPayload) => api.post('/pets', payload).then((res) => res.data),
     onSuccess: () => {
@@ -80,19 +140,45 @@ export default function CadastroPet() {
   function handleSalvar() {
     if (isPending) return;
 
-    if (!nome.trim() || !especie || !raca.trim() || !idade.trim() || !peso.trim()) {
+    if (!nome.trim() || !especie || !raca.trim() || !peso.trim() || !sexo) {
       setFormErro('Preencha todos os campos para continuar.');
       return;
     }
-
-    const idadeNumero = Number(idade.replace(',', '.'));
-    const pesoNumero = Number(peso.replace(',', '.'));
-    if (!Number.isFinite(idadeNumero) || idadeNumero < 0) {
-      setFormErro('Informe uma idade válida.');
+    if (!DATA_NASCIMENTO_REGEX.test(dataNascimento) || Number.isNaN(new Date(dataNascimento).getTime())) {
+      setFormErro('Informe a data de nascimento no formato AAAA-MM-DD.');
       return;
     }
+
+    const pesoNumero = Number(peso.replace(',', '.'));
     if (!Number.isFinite(pesoNumero) || pesoNumero <= 0) {
       setFormErro('Informe um peso válido.');
+      return;
+    }
+
+    if (isLoadingTutores) {
+      setFormErro('Aguarde um instante enquanto carregamos seu perfil.');
+      return;
+    }
+    if (isErrorTutores || !tutores) {
+      setFormErro('Não foi possível validar seu perfil de tutor. Tente novamente.');
+      return;
+    }
+
+    // Match silencioso: identifica o tutor logado pelo e-mail do Firebase
+    // Auth, sem nunca exibir a lista de tutores na tela (ver comentário em
+    // fetchTutores). Comparação normalizada (trim + lowercase) porque e-mail
+    // é, na prática, case-insensitive — evita falso-negativo por diferença de
+    // maiúsculas entre o Firebase e o cadastro no Oracle.
+    const emailLogado = auth.currentUser?.email?.trim().toLowerCase();
+    const tutorLogado = emailLogado
+      ? tutores.find((tutor) => tutor.email.trim().toLowerCase() === emailLogado)
+      : undefined;
+
+    if (!tutorLogado) {
+      Alert.alert(
+        'Perfil não encontrado',
+        'Seu perfil de tutor não foi encontrado no sistema. Entre em contato com o suporte.'
+      );
       return;
     }
     setFormErro('');
@@ -101,8 +187,10 @@ export default function CadastroPet() {
       nome: nome.trim(),
       especie,
       raca: raca.trim(),
-      idade: idadeNumero,
       peso: pesoNumero,
+      sexo,
+      dataNascimento,
+      idTutor: tutorLogado.id,
     });
   }
 
@@ -137,18 +225,18 @@ export default function CadastroPet() {
 
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Espécie</Text>
-              <View style={styles.especieRow}>
+              <View style={styles.toggleRow}>
                 {ESPECIES.map((opcao) => {
                   const selecionada = especie === opcao;
                   return (
                     <TouchableOpacity
                       key={opcao}
-                      style={[styles.especieOption, selecionada && styles.especieOptionSelecionada]}
+                      style={[styles.toggleOption, selecionada && styles.toggleOptionSelecionada]}
                       activeOpacity={0.8}
                       onPress={() => setEspecie(opcao)}
                     >
-                      <Text style={styles.especieIcon}>{opcao === 'Cachorro' ? '🐶' : '🐱'}</Text>
-                      <Text style={styles.especieLabel}>{opcao}</Text>
+                      <Text style={styles.toggleIcon}>{opcao === 'Cachorro' ? '🐶' : '🐱'}</Text>
+                      <Text style={styles.toggleLabel}>{opcao}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -168,16 +256,36 @@ export default function CadastroPet() {
               />
             </View>
 
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Sexo</Text>
+              <View style={styles.toggleRow}>
+                {SEXOS.map((opcao) => {
+                  const selecionado = sexo === opcao;
+                  return (
+                    <TouchableOpacity
+                      key={opcao}
+                      style={[styles.toggleOption, selecionado && styles.toggleOptionSelecionada]}
+                      activeOpacity={0.8}
+                      onPress={() => setSexo(opcao)}
+                    >
+                      <Text style={styles.toggleLabel}>{opcao === 'M' ? 'Macho' : 'Fêmea'}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
             <View style={styles.row}>
               <View style={[styles.fieldGroup, styles.rowField]}>
-                <Text style={styles.label}>Idade (anos)</Text>
+                <Text style={styles.label}>Nascimento</Text>
                 <TextInput
                   style={styles.input}
-                  value={idade}
-                  onChangeText={setIdade}
-                  placeholder="Ex.: 3"
+                  value={dataNascimento}
+                  onChangeText={setDataNascimento}
+                  placeholder="AAAA-MM-DD"
                   placeholderTextColor={COLORS.textMuted}
-                  keyboardType="numeric"
+                  keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'numeric'}
+                  maxLength={10}
                   returnKeyType="next"
                 />
               </View>
@@ -191,8 +299,7 @@ export default function CadastroPet() {
                   placeholder="Ex.: 12.5"
                   placeholderTextColor={COLORS.textMuted}
                   keyboardType="decimal-pad"
-                  returnKeyType="done"
-                  onSubmitEditing={handleSalvar}
+                  returnKeyType="next"
                 />
               </View>
             </View>
@@ -200,10 +307,10 @@ export default function CadastroPet() {
             {!!formErro && <Text style={styles.errorText}>{formErro}</Text>}
 
             <TouchableOpacity
-              style={[styles.button, isPending && styles.buttonDisabled]}
+              style={[styles.button, (isPending || isLoadingTutores) && styles.buttonDisabled]}
               activeOpacity={0.8}
               onPress={handleSalvar}
-              disabled={isPending}
+              disabled={isPending || isLoadingTutores}
             >
               {isPending ? (
                 <ActivityIndicator color={COLORS.text} />
@@ -285,12 +392,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ---- Seletor de espécie ----
-  especieRow: {
+  // ---- Seletores tipo "toggle" (Espécie, Sexo) ----
+  toggleRow: {
     flexDirection: 'row',
     gap: 12,
   },
-  especieOption: {
+  toggleOption: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -302,13 +409,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 8,
   },
-  especieOptionSelecionada: {
+  toggleOptionSelecionada: {
     backgroundColor: COLORS.primary,
   },
-  especieIcon: {
+  toggleIcon: {
     fontSize: 18,
   },
-  especieLabel: {
+  toggleLabel: {
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.text,
