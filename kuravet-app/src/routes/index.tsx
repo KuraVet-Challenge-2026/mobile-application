@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Login from '../screens/Login';
 import Cadastro from '../screens/Cadastro';
 import Home from '../screens/Home';
-import CadastroPetScreen from '../screens/CadastroPetScreen';
+import CadastroPet from '../screens/CadastroPet';
 import HistoricoDiagnosticoScreen from '../screens/HistoricoDiagnosticoScreen';
 import TeleconsultaScreen from '../screens/TeleconsultaScreen';
 import PerfilScreen from '../screens/PerfilScreen';
@@ -32,7 +32,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
       <Stack.Screen
         name="CadastroPet"
-        component={CadastroPetScreen}
+        component={CadastroPet}
         options={{ title: 'Cadastro de Pet' }}
       />
       <Stack.Screen
