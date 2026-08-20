@@ -71,17 +71,24 @@ export default function Cadastro() {
     setIsLoading(true);
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email.trim(), senha);
-      // Guarda o nome informado no perfil do usuário (não é enviado no create).
-      await updateProfile(user, { displayName: nome.trim() });
 
-      // `reset` em vez de `navigate`: depois de cadastrado, o botão "voltar" do
-      // dispositivo não deve levar o usuário de volta para o formulário.
-      // Não zeramos `isLoading` aqui de propósito: a tela é desmontada pela
-      // navegação, então não há necessidade (e evita setState após unmount).
+      // Guarda o nome informado no perfil do usuário (não é enviado no create).
+      // Isolado em seu próprio try/catch de propósito: a conta já foi criada e
+      // autenticada neste ponto, então uma falha aqui (ex.: rede) não deve
+      // impedir o usuário de navegar para a Home.
+      try {
+        await updateProfile(user, { displayName: nome.trim() });
+      } catch (profileError) {
+        console.warn('Não foi possível salvar o nome no perfil do usuário:', profileError);
+      }
+
+      // `reset` em vez de `navigate`: limpa o histórico da stack para que o
+      // botão "voltar" do dispositivo não leve de volta ao formulário.
       navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     } catch (error) {
-      setIsLoading(false);
       Alert.alert('Não foi possível cadastrar', getFirebaseAuthErrorMessage(error));
+    } finally {
+      setIsLoading(false);
     }
   }
 

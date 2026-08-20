@@ -65,14 +65,13 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email.trim(), senha);
 
-      // `reset` em vez de `navigate`: depois de logado, o botão "voltar" do
-      // dispositivo não deve levar o usuário de volta para a tela de Login.
-      // Não zeramos `isLoading` aqui de propósito: a tela é desmontada pela
-      // navegação, então não há necessidade (e evita setState após unmount).
+      // `reset` em vez de `navigate`: limpa o histórico da stack para que o
+      // botão "voltar" do dispositivo não leve de volta à tela de Login.
       navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     } catch (error) {
-      setIsLoading(false);
       Alert.alert('Não foi possível entrar', getFirebaseAuthErrorMessage(error));
+    } finally {
+      setIsLoading(false);
     }
   }
 
