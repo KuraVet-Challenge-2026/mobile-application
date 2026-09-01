@@ -64,14 +64,24 @@ const QUICK_ACTIONS: {
   image?: any;
   route: keyof RootStackParamList;
 }[] = [
-    { key: 'consulta', label: 'Nova Consulta', icon: '', route: 'Teleconsulta' },
+    {
+      key: 'consulta',
+      label: 'Nova Consulta',
+      image: require('../../assets/Medica.jpg'),
+      route: 'Teleconsulta'
+    },
     {
       key: 'pets',
       label: 'Meus Pets',
       image: require('../../assets/Cachorro Caramelho.jpg'),
       route: 'CadastroPet'
     },
-    { key: 'historico', label: 'Histórico', icon: '', route: 'HistoricoDiagnostico' },
+    {
+      key: 'historico',
+      label: 'Histórico',
+      image: require('../../assets/Calendario.jpg'),
+      route: 'HistoricoDiagnostico'
+    },
   ];
 
 const STATUS_STYLES: Record<string, { backgroundColor: string; color: string }> = {
@@ -179,9 +189,13 @@ export default function Home() {
           </ScrollView>
         </View>
 
-        {/* Banner de destaque: espaço reservado para uma futura ilustração/imagem */}
+        {/* Banner de destaque com a foto dos pets */}
         <View style={styles.tipBanner}>
-          <View style={styles.tipBannerImagePlaceholder} />
+          <Image
+            source={require('../../assets/Animais.jpg')}
+            style={styles.tipBannerImagePlaceholder}
+            resizeMode="cover"
+          />
           <View style={styles.tipBannerTextWrap}>
             <Text style={styles.tipBannerTitle}>Dica de saúde</Text>
             <Text style={styles.tipBannerText}>
@@ -336,6 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#C9DEF2',
     marginRight: 14,
+    overflow: 'hidden', // Garante que a foto respeite as bordas arredondadas
   },
   tipBannerTextWrap: {
     flex: 1,
