@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -59,13 +60,29 @@ const CONSULTAS_FALLBACK = [
 const QUICK_ACTIONS: {
   key: string;
   label: string;
-  icon: string;
+  icon?: string;
+  image?: any;
   route: keyof RootStackParamList;
 }[] = [
-  { key: 'consulta', label: 'Nova Consulta', icon: '🩺', route: 'Teleconsulta' },
-  { key: 'pets', label: 'Meus Pets', icon: '🐾', route: 'CadastroPet' },
-  { key: 'historico', label: 'Histórico', icon: '📋', route: 'HistoricoDiagnostico' },
-];
+    {
+      key: 'consulta',
+      label: 'Nova Consulta',
+      image: require('../../assets/Medica.jpg'),
+      route: 'Teleconsulta'
+    },
+    {
+      key: 'pets',
+      label: 'Meus Pets',
+      image: require('../../assets/Cachorro Caramelho.jpg'),
+      route: 'CadastroPet'
+    },
+    {
+      key: 'historico',
+      label: 'Histórico',
+      image: require('../../assets/Calendario.jpg'),
+      route: 'HistoricoDiagnostico'
+    },
+  ];
 
 const STATUS_STYLES: Record<string, { backgroundColor: string; color: string }> = {
   Agendada: { backgroundColor: '#C9DEF2', color: '#1E4E79' },
@@ -133,7 +150,7 @@ export default function Home() {
         {/* Header: saudação + placeholder de foto de perfil */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Olá, tudo bem? 👋</Text>
+            <Text style={styles.greeting}>Olá, tudo bem?</Text>
             <Text style={styles.greetingSubtitle}>Vamos cuidar do seu pet hoje?</Text>
           </View>
 
@@ -160,7 +177,11 @@ export default function Home() {
                 onPress={() => navigation.navigate(action.route)}
               >
                 <View style={styles.quickActionIconWrap}>
-                  <Text style={styles.quickActionIcon}>{action.icon}</Text>
+                  {action.image ? (
+                    <Image source={action.image} style={styles.quickActionImage} resizeMode="cover" />
+                  ) : (
+                    <Text style={styles.quickActionIcon}>{action.icon}</Text>
+                  )}
                 </View>
                 <Text style={styles.quickActionLabel}>{action.label}</Text>
               </TouchableOpacity>
@@ -168,9 +189,13 @@ export default function Home() {
           </ScrollView>
         </View>
 
-        {/* Banner de destaque: espaço reservado para uma futura ilustração/imagem */}
+        {/* Banner de destaque com a foto dos pets */}
         <View style={styles.tipBanner}>
-          <View style={styles.tipBannerImagePlaceholder} />
+          <Image
+            source={require('../../assets/Animais.jpg')}
+            style={styles.tipBannerImagePlaceholder}
+            resizeMode="cover"
+          />
           <View style={styles.tipBannerTextWrap}>
             <Text style={styles.tipBannerTitle}>Dica de saúde</Text>
             <Text style={styles.tipBannerText}>
@@ -294,6 +319,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
+  quickActionImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
   quickActionIcon: {
     fontSize: 22,
   },
@@ -320,6 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#C9DEF2',
     marginRight: 14,
+    overflow: 'hidden', // Garante que a foto respeite as bordas arredondadas
   },
   tipBannerTextWrap: {
     flex: 1,
