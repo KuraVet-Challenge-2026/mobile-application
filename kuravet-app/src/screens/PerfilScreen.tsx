@@ -81,28 +81,34 @@ export default function PerfilScreen() {
           <Text style={styles.userEmail}>{userInfo.email}</Text>
         </View>
 
-        {/* Menu contendo apenas Configurações */}
+        {/* Menu de Configurações */}
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Configuracoes')}
+          >
             <View style={styles.menuIconWrap}>
               <Text style={styles.iconFallbackText}>CF</Text>
             </View>
             <View style={styles.menuTextWrap}>
               <Text style={styles.menuText}>Configurações</Text>
-              <Text style={styles.menuSubText}>Notificações e preferências do app</Text>
+              <Text style={styles.menuSubText}>Dados da conta e preferências</Text>
             </View>
             <Text style={styles.chevron}>&gt;</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Botão de Logout */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.logoutButtonText}>Sair da Conta</Text>
-        </TouchableOpacity>
+        {/* Botão de Logout Funcional com Wrapper de Toque */}
+        <View style={styles.logoutWrapper}>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.logoutButtonText}>Sair da Conta</Text>
+          </TouchableOpacity>
+        </View>
 
       </ScrollView>
     </SafeAreaView>
@@ -198,6 +204,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#A3C1DA',
+  },
+  logoutWrapper: {
+    marginTop: 'auto',
+    marginBottom: 20,
+    zIndex: 99,
   },
   logoutButton: {
     flexDirection: 'row',

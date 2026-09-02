@@ -1,93 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     SafeAreaView,
-    TouchableOpacity,
-    Switch,
     ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../routes';
 
+import { auth } from '../config/firebaseConfig';
+
 type ConfiguracoesNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Configuracoes'>;
 
 export default function ConfiguracoesScreen() {
     const navigation = useNavigation<ConfiguracoesNavigationProp>();
+    const [userData, setUserData] = useState({
+        nome: '',
+        email: '',
+    });
 
-    // Estados para os botões de alternância (Switches)
-    const [notificacoes, setNotificacoes] = useState(true);
-    const [modoEscuro, setModoEscuro] = useState(false);
-    const [localizacao, setLocalizacao] = useState(true);
+    useEffect(() => {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            setUserData({
+                nome: currentUser.displayName || 'Usuário KuraVet',
+                email: currentUser.email || 'Não informado',
+            });
+        }
+    }, []);
 
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.container}>
 
-                <Text style={styles.sectionHeader}>Preferências do Aplicativo</Text>
+                <Text style={styles.sectionHeader}>Dados da Conta</Text>
 
-                {/* Opção de Notificações */}
-                <View style={styles.settingItem}>
-                    <View style={styles.settingTextWrap}>
-                        <Text style={styles.settingTitle}>Notificações Push</Text>
-                        <Text style={styles.settingSubtext}>Receber alertas de consultas e vacinas</Text>
-                    </View>
-                    <Switch
-                        trackColor={{ false: '#C9DEF2', true: '#9FC6EA' }}
-                        thumbColor={notificacoes ? '#1E4E79' : '#f4f3f4'}
-                        onValueChange={() => setNotificacoes(previousState => !previousState)}
-                        value={notificacoes}
-                    />
+                {/* Nome */}
+                <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>Nome cadastrado</Text>
+                    <Text style={styles.infoValue}>{userData.nome}</Text>
                 </View>
 
-                {/* Opção de Modo Escuro */}
-                <View style={styles.settingItem}>
-                    <View style={styles.settingTextWrap}>
-                        <Text style={styles.settingTitle}>Modo Escuro</Text>
-                        <Text style={styles.settingSubtext}>Ajustar a aparência visual do app</Text>
-                    </View>
-                    <Switch
-                        trackColor={{ false: '#C9DEF2', true: '#9FC6EA' }}
-                        thumbColor={modoEscuro ? '#1E4E79' : '#f4f3f4'}
-                        onValueChange={() => setModoEscuro(previousState => !previousState)}
-                        value={modoEscuro}
-                    />
+                {/* E-mail */}
+                <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>E-mail de acesso</Text>
+                    <Text style={styles.infoValue}>{userData.email}</Text>
                 </View>
 
-                {/* Opção de Localização */}
-                <View style={styles.settingItem}>
-                    <View style={styles.settingTextWrap}>
-                        <Text style={styles.settingTitle}>Usar Localização</Text>
-                        <Text style={styles.settingSubtext}>Encontrar clínicas parceiras próximas</Text>
-                    </View>
-                    <Switch
-                        trackColor={{ false: '#C9DEF2', true: '#9FC6EA' }}
-                        thumbColor={localizacao ? '#1E4E79' : '#f4f3f4'}
-                        onValueChange={() => setLocalizacao(previousState => !previousState)}
-                        value={localizacao}
-                    />
-                </View>
-
-                <Text style={[styles.sectionHeader, { marginTop: 32 }]}>Suporte e Informações</Text>
-
-                {/* Links de navegação ou modais informativos */}
-                <View style={styles.menuContainer}>
-                    <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-                        <Text style={styles.menuText}>Política de Privacidade</Text>
-                        <Text style={styles.chevron}>&gt;</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-                        <Text style={styles.menuText}>Termos de Uso</Text>
-                        <Text style={styles.chevron}>&gt;</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} activeOpacity={0.7}>
-                        <Text style={styles.menuText}>Sobre o KuraVet</Text>
-                        <Text style={styles.chevron}>&gt;</Text>
-                    </TouchableOpacity>
+                {/* Senha */}
+                <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>Senha</Text>
+                    <Text style={styles.infoValue}>********</Text>
+                    <Text style={styles.infoHint}>Por segurança, a senha é criptografada.</Text>
                 </View>
 
             </ScrollView>
@@ -114,52 +80,33 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
-    settingItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    infoCard: {
         backgroundColor: '#F2F7FC',
         borderRadius: 20,
-        paddingVertical: 14,
+        paddingVertical: 16,
         paddingHorizontal: 20,
         marginBottom: 12,
+        shadowColor: '#1E4E79',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        elevation: 2,
     },
-    settingTextWrap: {
-        flex: 1,
-        marginRight: 16,
+    infoLabel: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#4C7EA8',
+        marginBottom: 4,
+        textTransform: 'uppercase',
     },
-    settingTitle: {
+    infoValue: {
         fontSize: 16,
         fontWeight: '700',
         color: '#1E4E79',
     },
-    settingSubtext: {
-        fontSize: 12,
-        color: '#4C7EA8',
-        marginTop: 2,
-    },
-    menuContainer: {
-        backgroundColor: '#F2F7FC',
-        borderRadius: 20,
-        paddingVertical: 8,
-    },
-    menuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E2EAF2',
-    },
-    menuText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1E4E79',
-    },
-    chevron: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#A3C1DA',
+    infoHint: {
+        fontSize: 11,
+        color: '#8CAECF',
+        marginTop: 4,
     },
 });
