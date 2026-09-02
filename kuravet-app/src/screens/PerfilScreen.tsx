@@ -12,13 +12,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../routes';
 
-// Importe a instância do auth configurada no seu projeto (ajuste o caminho se necessário)
 import { auth } from '../config/firebaseConfig';
 import { signOut } from 'firebase/auth';
 
 type PerfilNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Perfil'>;
 
-// Função auxiliar para pegar as iniciais do nome dinamicamente (ex: Pedro Henrique -> PH)
 const getInitials = (name?: string | null) => {
   if (!name) return 'US';
   const words = name.trim().split(' ');
@@ -36,7 +34,6 @@ export default function PerfilScreen() {
   });
 
   useEffect(() => {
-    // Pega o usuário logado atualmente no Firebase
     const currentUser = auth.currentUser;
     if (currentUser) {
       setUserInfo({
@@ -57,10 +54,7 @@ export default function PerfilScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              // Encerra a sessão no Firebase
               await signOut(auth);
-
-              // Redireciona o usuário para a tela de Login e limpa o histórico de navegação
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'Login' }],
@@ -78,7 +72,7 @@ export default function PerfilScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
 
-        {/* Cabeçalho do Perfil - DADOS REAIS DO FIREBASE */}
+        {/* Cabeçalho do Perfil */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
             <Text style={styles.avatarText}>{getInitials(userInfo.nome)}</Text>
@@ -87,19 +81,8 @@ export default function PerfilScreen() {
           <Text style={styles.userEmail}>{userInfo.email}</Text>
         </View>
 
-        {/* Menu de Opções */}
+        {/* Menu contendo apenas Configurações */}
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-            <View style={styles.menuIconWrap}>
-              <Text style={styles.iconFallbackText}>MD</Text>
-            </View>
-            <View style={styles.menuTextWrap}>
-              <Text style={styles.menuText}>Meus Dados</Text>
-              <Text style={styles.menuSubText}>Informações pessoais e de contato</Text>
-            </View>
-            <Text style={styles.chevron}>&gt;</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
             <View style={styles.menuIconWrap}>
               <Text style={styles.iconFallbackText}>CF</Text>
@@ -110,20 +93,9 @@ export default function PerfilScreen() {
             </View>
             <Text style={styles.chevron}>&gt;</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
-            <View style={styles.menuIconWrap}>
-              <Text style={styles.iconFallbackText}>SG</Text>
-            </View>
-            <View style={styles.menuTextWrap}>
-              <Text style={styles.menuText}>Segurança</Text>
-              <Text style={styles.menuSubText}>Senha e autenticação</Text>
-            </View>
-            <Text style={styles.chevron}>&gt;</Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Botão de Logout Integrado */}
+        {/* Botão de Logout */}
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
@@ -194,8 +166,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2EAF2',
   },
   menuIconWrap: {
     width: 40,
