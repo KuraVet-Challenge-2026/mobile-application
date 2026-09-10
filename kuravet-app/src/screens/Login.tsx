@@ -196,22 +196,25 @@ const styles = StyleSheet.create({
   },
 
   // ---- Logo ----
+  // 140 (antes 96): proporcional ao card de login, que vai até 400 de largura — 96 ficava
+  // pequeno demais ao lado dele. logoFallback (quando o asset falha) escala junto, senão o
+  // fallback voltaria a ficar desproporcional ao card mesmo com a logo real corrigida.
   logo: {
-    width: 96,
-    height: 96,
+    width: 140,
+    height: 140,
     marginBottom: 16,
   },
   logoFallback: {
-    width: 96,
-    height: 96,
-    borderRadius: 28,
+    width: 140,
+    height: 140,
+    borderRadius: 36,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   logoFallbackText: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '800',
     color: COLORS.text,
   },
