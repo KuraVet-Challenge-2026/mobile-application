@@ -3,6 +3,11 @@
 App mobile do tutor (responsável pelo pet), desenvolvido para o Challenge FIAP 2026 com a
 CLYVO VET como cliente parceiro. Repositório da disciplina Mobile Application Development.
 
+> **Nota de manutenção:** este é o README canônico do projeto (fica junto do código, `docs/` e
+> `CLAUDE.md`). Existe um espelho em `../README.md` (raiz do repositório) porque o GitHub sempre
+> renderiza o README da raiz na página inicial, não o de uma subpasta — **atualize os dois juntos**
+> a cada mudança aqui.
+
 ## Sobre o projeto
 
 O briefing da CLYVO VET (`docs/briefing-clyvo.pdf`) descreve um problema estrutural do mercado
@@ -34,8 +39,23 @@ repositório. Este README documenta apenas o que foi de fato implementado no app
 - Todas as listas refletem criação, edição e exclusão automaticamente, sem precisar reabrir o
   app ou puxar para atualizar.
 
-O que ainda não está implementado: vacinas e lembretes, teleconsulta (bloqueada até o backend
-expor um endpoint de veterinários) e qualquer personalização por IA.
+### Escopo — o que ficou fora da Sprint 3 e por quê
+
+- **Teleconsulta** ficou fora da Sprint 3 por dependência de endpoint de veterinários inexistente
+  no backend: `POST /api/consultas/solicitacoes` exige um `idVeterinario` válido, e sem
+  `GET /api/veterinarios` não há forma real de escolher um sem recorrer a dado mockado (proibido
+  pelo projeto). Read/Update/Delete de consulta já funcionam na API, mas sem Create real a
+  funcionalidade não fecha um CRUD completo — por isso não foi escolhida como a 3ª funcionalidade
+  de CRUD (ver `docs/AUDITORIA.md`, seção 3).
+- **Histórico de diagnóstico** ficou fora da Sprint 3 por não existir ainda nenhum endpoint para
+  isso no backend — diferente da Teleconsulta, nem o contrato foi definido.
+- Em ambos os casos, a tela existe (rota declarada, alcançável a partir de "Ações Rápidas" na
+  Home) mas é um placeholder, sem dado real: preservar a rota mantém o contexto de produto do
+  briefing CLYVO VET (continuidade terapêutica/histórico) e evita quebrar a navegação de
+  `Home.tsx`; nenhuma das duas conta para o mínimo de 6 telas da rubrica (o app já tem 10 telas
+  com funcionalidade real sem contar essas duas — ver `docs/AUDITORIA.md`, seção 1, decisão de
+  2026-09-10).
+- Também fora do escopo: vacinas, lembretes, e qualquer personalização por IA.
 
 ## Tecnologias utilizadas
 
