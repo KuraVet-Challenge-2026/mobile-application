@@ -1,215 +1,205 @@
-# 🐾 KuraVet Mobile
+# KuraVet App
 
-Aplicativo móvel desenvolvido para o Challenge FIAP, focado na gestão de saúde e agendamento de consultas veterinárias para animais de estimação. O projeto prioriza uma interface fluida, usabilidade e estabilidade local.
+App mobile do tutor (responsável pelo pet), desenvolvido para o Challenge FIAP 2026 com a
+CLYVO VET como cliente parceiro. Repositório da disciplina Mobile Application Development.
 
----
+> **Nota de manutenção:** o projeto real (código, `docs/`, `CLAUDE.md`) mora em `kuravet-app/`, e
+> este arquivo é um espelho do `kuravet-app/README.md` — porque o GitHub sempre renderiza o
+> `README.md` da raiz do repositório na página inicial, não o de uma subpasta. **Os dois arquivos
+> precisam ser atualizados juntos**: qualquer edição aqui (ou lá) deve ser replicada no outro
+> antes do commit, para não voltar a divergir (foi exatamente isso que aconteceu com a versão
+> anterior deste arquivo, corrigida em 2026-09-10 — ver `kuravet-app/docs/AUDITORIA.md`, seção 1).
 
-# 👥 Equipe de Desenvolvimento
+## Sobre o projeto
 
-- **Pedro Henrique Luiz Alves Duarte**
-- **Guilherme Macedo Martins**
-- **Henrique Martins**
+O briefing da CLYVO VET (`kuravet-app/docs/briefing-clyvo.pdf`) descreve um problema estrutural do
+mercado pet: o tutor só procura a clínica em situações de urgência ou em gatilhos óbvios, como a
+vacinação. Consultas e exames preventivos ficam esquecidos, o vínculo entre clínica e tutor não
+tem histórico estruturado, e oportunidades de acompanhamento se perdem por falta de continuidade.
 
-> Turma: 2TDSPO / FIAP
+Este app é a peça mobile dessa solução: o ponto de contato do tutor com a jornada de cuidado do
+seu pet. Ele resolve, hoje, a parte da jornada que depende de o tutor ter uma conta própria,
+segura, e conseguir manter os dados do seu pet e do seu próprio cadastro atualizados junto à
+clínica, sem depender de ligar ou ir pessoalmente até lá para qualquer alteração simples. Isso é
+o alicerce sobre o qual a continuidade preventiva (lembretes de vacina, retornos, protocolos por
+espécie) pode ser construída depois: sem uma conta de tutor confiável e um cadastro de pet
+correto, não tem como a clínica saber a quem e sobre qual animal lembrar de nada.
 
----
+O componente de IA para personalização, os canais conversacionais (WhatsApp) e o modelo de
+monetização citados no briefing são entregáveis de outras disciplinas do Challenge, não deste
+repositório. Este README documenta apenas o que foi de fato implementado no app mobile.
 
-# 🚀 Tecnologias Utilizadas
+### O que o app faz hoje
 
-O projeto foi construído utilizando as seguintes tecnologias e bibliotecas:
+- Cadastro e login reais contra a API Java do projeto (Spring Security, HTTP Basic), com sessão
+  persistida no dispositivo entre reaberturas do app.
+- Logout, que bloqueia imediatamente o acesso às telas protegidas.
+- CRUD completo de Pet: cadastrar, listar, ver detalhe, editar e excluir os pets do tutor
+  autenticado.
+- CRUD completo do perfil do próprio tutor ("Meu Perfil"): ver os dados completos do cadastro,
+  editar e excluir a conta, sempre restrito ao próprio usuário logado.
+- Todas as listas refletem criação, edição e exclusão automaticamente, sem precisar reabrir o
+  app ou puxar para atualizar.
 
-- **[React Native](https://reactnative.dev/)** com **[Expo](https://expo.dev/)**
-  - Framework principal para desenvolvimento mobile cross-platform.
+### Escopo — o que ficou fora da Sprint 3 e por quê
 
-- **[TypeScript](https://www.typescriptlang.org/)**
-  - Tipagem estática para maior segurança e qualidade do código.
+- **Teleconsulta** ficou fora da Sprint 3 por dependência de endpoint de veterinários inexistente
+  no backend: `POST /api/consultas/solicitacoes` exige um `idVeterinario` válido, e sem
+  `GET /api/veterinarios` não há forma real de escolher um sem recorrer a dado mockado (proibido
+  pelo projeto). Read/Update/Delete de consulta já funcionam na API, mas sem Create real a
+  funcionalidade não fecha um CRUD completo — por isso não foi escolhida como a 3ª funcionalidade
+  de CRUD (ver `kuravet-app/docs/AUDITORIA.md`, seção 3).
+- **Histórico de diagnóstico** ficou fora da Sprint 3 por não existir ainda nenhum endpoint para
+  isso no backend — diferente da Teleconsulta, nem o contrato foi definido.
+- Em ambos os casos, a tela existe (rota declarada, alcançável a partir de "Ações Rápidas" na
+  Home) e mostra um estado vazio honesto, explicando o motivo — sem dado real nem simulação de
+  funcionalidade: preservar a rota mantém o contexto de produto do briefing CLYVO VET
+  (continuidade terapêutica/histórico) e evita quebrar a navegação de `Home.tsx`; nenhuma das duas
+  conta para o mínimo de 6 telas da rubrica (o app já tem 10 telas com funcionalidade real sem
+  contar essas duas — ver `kuravet-app/docs/AUDITORIA.md`, seção 1, decisão de 2026-09-10).
+- Também fora do escopo: vacinas, lembretes, e qualquer personalização por IA.
 
-- **[React Navigation](https://reactnavigation.org/)**
-  - Gerenciamento de rotas e navegação em abas (*Bottom Tabs*).
+## Tecnologias utilizadas
 
-- **[AsyncStorage](https://react-native-async-storage.github.io/async-storage/)**
-  - Persistência de dados local (simulação de banco de dados).
+Versões conforme `kuravet-app/package.json` nesta entrega.
 
----
+- Expo SDK 57 (`expo` ~57.0.21), React Native 0.86.3, React 19.2.3
+- TypeScript ~6.0.3
+- Navegação: React Navigation (`@react-navigation/native` ^7.3.16 e
+  `@react-navigation/native-stack` ^7.18.8)
+- Dados e integração com a API: TanStack Query ^5.101.4, Axios ^1.19.0
+- Autenticação e armazenamento seguro: `expo-secure-store` ~57.0.3 (Keychain no iOS, Keystore no
+  Android)
+- Configuração de build: `expo-build-properties` ~57.0.17, usado para habilitar tráfego HTTP em
+  claro no Android durante o desenvolvimento local (ver `kuravet-app/docs/RODANDO_LOCAL.md`)
+- Qualidade de código: ESLint 9 com `eslint-config-expo` ~57.0.2
 
-# ✨ Funcionalidades Implementadas
+Backend consumido: API Java (Spring Boot), repositório `java-advanced`, fora deste repositório.
+Autenticação HTTP Basic via Spring Security, banco Oracle. Contrato completo em
+`kuravet-app/docs/API_CONTRACT.md`.
 
-A aplicação foi estruturada para garantir o **“caminho feliz” completo do utilizador**, totalmente offline e à prova de falhas de rede durante a avaliação.
+## Arquitetura e estrutura de pastas
 
----
+O código do app mobile fica todo em `kuravet-app/`, separado em três camadas: acesso a dados
+(`api/`), estado de servidor (`hooks/`) e apresentação (`screens/`). Nenhuma tela chama a API
+diretamente; toda chamada HTTP passa por um hook do TanStack Query, que por sua vez chama uma
+função tipada de `src/api/`.
 
-## 🔐 Autenticação e Sessão
-
-### ✅ Login e Cadastro Local
-Sistema real de verificação de credenciais. O tutor pode criar uma conta com validação de:
-
-- Formato de e-mail
-- Tamanho mínimo de senha
-
-### ✅ UX Avançada no Login
-
-- Utilização de `KeyboardAvoidingView`
-- Feedback visual com `ActivityIndicator`
-- Logotipo da equipa integrado
-
-### ✅ Gestão de Sessão
-
-- Persistência da sessão do utilizador
-- Mantém o utilizador logado mesmo após fechar o aplicativo
-- Botão **“Sair”** disponível nas rotas protegidas
-
----
-
-## 🐶 Gestão de Pets (“Meus Pets”)
-
-### Funcionalidades:
-
-- Cadastro de pets com máscaras em tempo real:
-  - Data de Nascimento (`DD/MM/AAAA`)
-  - Peso (`00.0 kg`)
-
-- Listagem dinâmica utilizando `AsyncStorage`
-
-- Remoção de pets com:
-  - Alerta de confirmação nativo
-  - Segurança contra cliques acidentais
-
----
-
-## 📅 Agendamento de Consultas
-
-### Funcionalidades:
-
-- Formulário para marcação de consultas
-- Máscaras de:
-  - Data
-  - Hora (`HH:MM`)
-
-- Persistência local das consultas
-
-- Cancelamento de consultas com:
-  - Confirmação dupla
-  - Segurança contra exclusão acidental
-
-- Botão auxiliar para limpar rapidamente os campos
-
----
-
-## 🩺 Guia de Saúde
-
-Ecrã informativo contendo:
-
-- Diretrizes de primeiros socorros
-- Triagem veterinária rápida:
-  - Frequência Respiratória
-  - TPC
-  - Mucosa
-  - Hidratação
-
----
-
-# 🏗️ Arquitetura do Projeto
-
-O código segue uma arquitetura baseada em camadas (*Layered Architecture*) adaptada para React Native, garantindo separação de responsabilidades.
-
-```text
-kuravet-mobile/
-├── assets/                 # Imagens, ícones e logotipo (logo.png)
-├── src/
-│   ├── components/         # Componentes reutilizáveis
-│   ├── contexts/           # Estados globais (AuthContext.tsx)
-│   ├── routes/             # Configuração do React Navigation (index.tsx)
-│   ├── screens/            # Telas da aplicação
-│   │   ├── Login
-│   │   ├── Pets
-│   │   ├── Agendamento
-│   │   └── Guia
-│   └── theme/              # Identidade visual (colors.ts)
-├── App.tsx                 # Ponto de entrada da aplicação
-└── app.json                # Configurações do Expo
+```
+kuravet-app/
+├── docs/             Documentação viva do projeto (contrato da API, rubrica, auditoria de
+│                     decisões, roteiro do vídeo, como rodar localmente)
+├── CLAUDE.md         Contexto permanente do projeto (regras invioláveis, convenções, decisões)
+└── src/
+    ├── api/          Funções tipadas de acesso a API. client.ts monta a instância do axios e o
+    │                 interceptor de autenticação; pets.ts e tutores.ts espelham os endpoints
+    │                 reais do backend (GET/POST/PUT/DELETE)
+    ├── auth/         AuthContext (login, cadastro, logout, sessão), persistência de credenciais
+    │                 em expo-secure-store, e o guard que decide qual stack de navegação mostrar
+    ├── components/   Componentes de UI reutilizados entre telas (ex.: FormularioPet, usado tanto
+    │                 no cadastro quanto na edição de um pet; EmptyState, usado pelas telas
+    │                 previstas para a Sprint 4)
+    ├── hooks/        useQuery/useMutation do TanStack Query, isolados por domínio (usePets,
+    │                 useTutores, useConsultas), com invalidação de cache após cada mutation
+    ├── routes/       Declaração das rotas (RootStackParamList) e o guard de autenticação
+    ├── screens/      Telas, uma por arquivo, só de apresentação
+    ├── types/        Tipos que espelham os DTOs reais da API Java
+    └── utils/        Tradução de erro da API para mensagem amigável, montagem do header Basic
+                      Auth
 ```
 
----
+Outras decisões de arquitetura, com data e motivo, ficam registradas em
+`kuravet-app/docs/AUDITORIA.md`.
 
-# 🎨 Identidade Visual
+## Como executar
 
-A paleta de cores foi aplicada em todos os os componentes para garantir uma interface agradável e profissional.
+### Pré-requisitos
 
-| Elemento | Cor |
-|---|---|
-| Primária (Vinho) | `#5D4057` |
-| Secundária (Terracota) | `#B55D5D` |
-| Fundo (Off-White) | `#F9F1F1` |
-| Branco (Cards/Textos) | `#FFFFFF` |
+- Node.js 18 ou superior e npm.
+- App **Expo Go** instalado no celular (Android ou iOS), na mesma rede Wi-Fi do computador que
+  vai rodar a API e o Metro.
+- O repositório `java-advanced` (API Java) clonado, com Java, Maven e acesso ao banco Oracle
+  configurados conforme o README daquele repositório.
 
----
+### 1. Subir a API Java localmente
 
-# 🛠️ Como Executar o Projeto
-
-> Como o projeto utiliza o Expo, não é necessário instalar Android Studio ou Xcode.
-
----
-
-## 1️⃣ Clone o repositório
+Na raiz do repositório `java-advanced`:
 
 ```bash
-git clone https://github.com/KuraVet-Challenge-2026/mobile-application.git
+./mvnw spring-boot:run
 ```
 
----
+Por padrão a API sobe na porta 8080. Para confirmar que está no ar, acesse
+`http://localhost:8080/api/ping` (do próprio computador) e espere a resposta `pong`. O contrato
+completo de endpoints está em `kuravet-app/docs/API_CONTRACT.md`.
 
-## 2️⃣ Acesse a pasta do projeto
+### 2. Instalar as dependências do app mobile
 
-```bash
-cd mobile-application/kuravet-mobile
-```
-
----
-
-## 3️⃣ Instale as dependências
+O app mobile fica na subpasta `kuravet-app` deste repositório, não na raiz:
 
 ```bash
+cd kuravet-app
 npm install
 ```
 
----
+### 3. Configurar KURAVET_API_BASE_URL
 
-## 4️⃣ Inicie o servidor local do Expo
-
-```bash
-npx expo start
-```
-
----
-
-## 5️⃣ Visualize no dispositivo
-
-1. Baixe o aplicativo **Expo Go** no Android ou iOS
-2. Certifique-se de que o celular e o computador estão na mesma rede Wi-Fi
-3. Escaneie o QR Code gerado no terminal com o Expo Go
-
----
-
-# 📌 Notas de Avaliação (Decisões de Projeto)
-
-Para fins de estabilidade durante a avaliação académica, dependências externas como **Axios** e integrações com APIs Java/Docker foram intencionalmente substituídas pelo uso estruturado do:
+A base URL da API nunca fica fixa em um arquivo versionado. Ainda dentro de `kuravet-app`, copie
+o template e ajuste o valor:
 
 ```bash
-@react-native-async-storage/async-storage
+cp .env.example .env.local
 ```
 
-Essa decisão garante que todas as operações de CRUD:
+Edite `.env.local` (gitignorado, nunca commitar) e ajuste `KURAVET_API_BASE_URL` para o endereço
+da API a partir de onde o app vai rodar. Para device físico, é o IP da máquina que está rodando a
+API Java na rede local (ex.: `http://192.168.0.42:8080/api`), nunca `localhost`. O passo a passo
+completo para descobrir esse IP, o ajuste de tráfego HTTP em claro exigido pelo Android, e os dois
+problemas mais comuns ao testar pelo navegador do celular estão em
+`kuravet-app/docs/RODANDO_LOCAL.md`.
 
-- Create
-- Read
-- Update
-- Delete
+### 4. Rodar no Expo Go em dispositivo físico
 
-ocorram de forma:
+1. Confirme que a API está acessível pela rede: no navegador do próprio celular, acesse
+   `http://<mesmo IP configurado acima>:8080/api/ping` e espere `pong` (ver
+   `kuravet-app/docs/RODANDO_LOCAL.md` se esse teste não funcionar de primeira).
+2. Dentro de `kuravet-app`, rode:
 
-- Instantânea
-- Offline
-- Estável
-- Imune a falhas de rede nos laboratórios da instituição.
+   ```bash
+   npx expo start
+   ```
 
----
+3. O terminal mostra um QR code. Abra o Expo Go no celular e escaneie (Android: opção de
+   escanear dentro do próprio app; iOS: pela câmera nativa, que oferece abrir no Expo Go).
+4. O app carrega no celular via Metro, na mesma rede Wi-Fi. Sessão de login fica persistida no
+   Keychain/Keystore real do aparelho.
+
+Alternativa para emulador Android (AVD): mesmos passos, mas em `.env.local` use
+`KURAVET_API_BASE_URL=http://10.0.2.2:8080/api` (alias fixo do emulador para a máquina host) e
+rode `npx expo start --android`.
+
+### 5. Roteiro rápido de verificação
+
+1. Na tela de Cadastro, preencha nome, CPF, usuário e senha (usuário ainda não usado) e confirme.
+   Deve cair direto na Home.
+2. Feche o app completamente e reabra. Deve voltar direto para a Home, sem pedir login de novo.
+3. Cadastre um pet, edite-o e depois exclua-o, confirmando que a lista de pets se atualiza sozinha
+   em cada passo.
+4. Em Perfil > Configurações, confira os dados completos do tutor e edite algum campo.
+5. Em Perfil, toque em "Sair da Conta" e confirme. Deve voltar para a tela de Login, e as telas
+   protegidas não devem mais estar acessíveis.
+
+## Vídeo de demonstração
+
+Link do vídeo no YouTube: A PREENCHER
+
+Roteiro usado na gravação em `kuravet-app/docs/ROTEIRO_VIDEO.md`.
+
+## Integrantes
+
+| Nome completo | RM |
+|---|---|
+| A PREENCHER | A PREENCHER |
+| A PREENCHER | A PREENCHER |
+| A PREENCHER | A PREENCHER |
+| A PREENCHER | A PREENCHER |
