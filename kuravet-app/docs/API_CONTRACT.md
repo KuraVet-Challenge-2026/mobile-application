@@ -290,15 +290,35 @@ endpoints PATCH específicos.
 - O pet não pode ter outra consulta `SOLICITADA`/`AGENDADA` na mesma `dataConsulta`.
 - `PUT /{id}` só funciona se a consulta ainda estiver `SOLICITADA` ou `AGENDADA`.
 
-### Veterinários — [GAP] não existe controller de API
+### Veterinários — `VeterinarioController` (`/api/veterinarios`)
 
-Não há `VeterinarioController` nem qualquer rota `/api/veterinarios*`. Existe `Veterinario` como
-entidade JPA e `VeterinarioRepository`, mas nenhum endpoint REST os expõe. **Consequência direta**:
-o app mobile não tem como listar veterinários disponíveis para preencher `idVeterinario` ao montar
-o formulário de "Nova Consulta" (`src/screens/TeleconsultaScreen.tsx`, hoje um stub vazio). Isso
-precisa ser resolvido com o time do backend (pedir `GET /api/veterinarios`) antes de implementar o
-fluxo de solicitação de teleconsulta — usar um ID fixo no app violaria a regra de "zero dados
-mockados".
+**[Implementado, confirmado em 2026-09-10]** — item 4 de `docs/PEDIDO_BACKEND.md` atendido pelo
+backend. Consumido pelo app só para leitura (`src/api/veterinarios.ts` →
+`src/hooks/useVeterinarios.ts` → `src/screens/TeleconsultaScreen.tsx`, que lista os veterinários
+da clínica). Endpoint autenticado (`401` sem `Authorization`, confirmado por teste direto).
+
+| Método | Rota | Perfil | Descrição |
+|---|---|---|---|
+| `GET` | `/api/veterinarios` | autenticado | Lista todos os veterinários da clínica. Sem filtro de dono (não há esse conceito aqui). |
+| `GET` | `/api/veterinarios/{id}` | autenticado | Busca um veterinário por ID. Existe na API, mas nenhuma tela do app usa hoje (`src/screens/TeleconsultaScreen.tsx` é só listagem, sem detalhe). |
+
+**Response — `VeterinarioResponseDTO`** (confirmado contra a API real):
+```json
+{
+  "idVeterinario": 2,
+  "nome": "Dr. Rafael Andrade",
+  "crmv": "CRMV-SP 12346",
+  "especialidade": "Dermatologia",
+  "telefone": "(11) 3222-1002",
+  "email": "rafael.andrade@kuravet.com"
+}
+```
+
+Só listagem (`GET`) tem consumidor no app mobile — não existe Create/Update/Delete de veterinário
+pelo app (cadastro de veterinário é responsabilidade do portal web, fora deste repositório).
+Continua faltando `POST /api/consultas/solicitacoes` real pelo app: esta tela não avança para
+solicitar uma teleconsulta, só mostra quem está disponível — ver decisão em
+`docs/AUDITORIA.md`, seção 1 (2026-09-10).
 
 ## Erros — formato padrão (`ApiExceptionHandler`, escopo `controller.api`)
 
@@ -344,7 +364,7 @@ Falha de autorização por perfil (rota exige `TUTOR`/`VETERINARIO` e o usuário
 |---|---|---|---|
 | 1 | `POST /api/auth/cadastro` (Tutor + Usuario juntos) | Cadastro real de novos tutores | **Implementado** (confirmado 2026-09-03) — consumido desde a Fase 2 |
 | 2 | `GET /api/auth/me` | Validar login e obter perfil sem gambiarra | **Implementado** (confirmado 2026-09-03) — consumido desde a Fase 1/2 |
-| 3 | Sem `GET /api/veterinarios` | Bloqueia Create de Consulta/Teleconsulta (não dá pra escolher `idVeterinario` sem mockar) | **Pedido a fazer** — aguardando backend |
+| 3 | `GET /api/veterinarios` | Permite listar veterinários no app (leitura). Create de Consulta/Teleconsulta em si continua fora do app (decisão de escopo, não gap de backend) | **Implementado** (confirmado 2026-09-10) — consumido por `src/hooks/useVeterinarios.ts` |
 | 4 | `TutorController` sem verificação de dono | Qualquer autenticado edita/exclui tutor de terceiros | Mitigado client-side (app só opera no próprio `idTutor`); correção real é no backend |
 | 5 | `GET /api/tutores` retorna PII de todos os tutores, sem filtro | Vazamento de dado sensível para qualquer autenticado | Mitigado no app: nunca renderizar a lista completa em tela |
 

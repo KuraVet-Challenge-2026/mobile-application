@@ -40,23 +40,24 @@ repositório. Este README documenta apenas o que foi de fato implementado no app
   editar e excluir a conta, sempre restrito ao próprio usuário logado.
 - Todas as listas refletem criação, edição e exclusão automaticamente, sem precisar reabrir o
   app ou puxar para atualizar.
+- Listagem, somente leitura, dos veterinários da clínica (nome, especialidade, CRMV) na tela de
+  Teleconsulta.
 
 ### Escopo — o que ficou fora da Sprint 3 e por quê
 
-- **Teleconsulta** ficou fora da Sprint 3 por dependência de endpoint de veterinários inexistente
-  no backend: `POST /api/consultas/solicitacoes` exige um `idVeterinario` válido, e sem
-  `GET /api/veterinarios` não há forma real de escolher um sem recorrer a dado mockado (proibido
-  pelo projeto). Read/Update/Delete de consulta já funcionam na API, mas sem Create real a
-  funcionalidade não fecha um CRUD completo — por isso não foi escolhida como a 3ª funcionalidade
-  de CRUD (ver `kuravet-app/docs/AUDITORIA.md`, seção 3).
+- **Solicitar teleconsulta** (Create/Update/Delete de consulta) ficou fora da Sprint 3 por
+  decisão de escopo, não por falta de endpoint: o backend já expõe tudo que seria necessário
+  (`POST /api/consultas/solicitacoes`, `GET /api/veterinarios`), mas implementar o fluxo completo
+  de agendamento (formulário, mutations, regras de transição de status) era escopo grande demais
+  para caber com segurança nos últimos dias antes da entrega. A tela de Teleconsulta hoje só lista
+  os veterinários da clínica (leitura real, sem dado mockado) e avisa que o agendamento chega na
+  Sprint 4 — ver `kuravet-app/docs/AUDITORIA.md`, seção 3.
 - **Histórico de diagnóstico** ficou fora da Sprint 3 por não existir ainda nenhum endpoint para
-  isso no backend — diferente da Teleconsulta, nem o contrato foi definido.
-- Em ambos os casos, a tela existe (rota declarada, alcançável a partir de "Ações Rápidas" na
-  Home) e mostra um estado vazio honesto, explicando o motivo — sem dado real nem simulação de
-  funcionalidade: preservar a rota mantém o contexto de produto do briefing CLYVO VET
-  (continuidade terapêutica/histórico) e evita quebrar a navegação de `Home.tsx`; nenhuma das duas
-  conta para o mínimo de 6 telas da rubrica (o app já tem 10 telas com funcionalidade real sem
-  contar essas duas — ver `kuravet-app/docs/AUDITORIA.md`, seção 1, decisão de 2026-09-10).
+  isso no backend — diferente da Teleconsulta, nem o contrato foi definido. A tela existe (rota
+  declarada, alcançável a partir de "Ações Rápidas" na Home) e mostra um estado vazio honesto,
+  explicando o motivo, sem dado real nem simulação de funcionalidade.
+- Nenhuma das duas telas acima conta para o mínimo de 6 telas da rubrica (o app já tem telas com
+  funcionalidade real de sobra sem contar elas — ver `kuravet-app/docs/AUDITORIA.md`, seção 1).
 - Também fora do escopo: vacinas, lembretes, e qualquer personalização por IA.
 
 ## Tecnologias utilizadas
@@ -92,15 +93,17 @@ kuravet-app/
 ├── CLAUDE.md         Contexto permanente do projeto (regras invioláveis, convenções, decisões)
 └── src/
     ├── api/          Funções tipadas de acesso a API. client.ts monta a instância do axios e o
-    │                 interceptor de autenticação; pets.ts e tutores.ts espelham os endpoints
-    │                 reais do backend (GET/POST/PUT/DELETE)
+    │                 interceptor de autenticação; pets.ts, tutores.ts e veterinarios.ts espelham
+    │                 os endpoints reais do backend (GET/POST/PUT/DELETE; veterinarios.ts é só
+    │                 leitura)
     ├── auth/         AuthContext (login, cadastro, logout, sessão), persistência de credenciais
     │                 em expo-secure-store, e o guard que decide qual stack de navegação mostrar
     ├── components/   Componentes de UI reutilizados entre telas (ex.: FormularioPet, usado tanto
-    │                 no cadastro quanto na edição de um pet; EmptyState, usado pelas telas
-    │                 previstas para a Sprint 4)
+    │                 no cadastro quanto na edição de um pet; EmptyState, usado pela tela prevista
+    │                 para a Sprint 4)
     ├── hooks/        useQuery/useMutation do TanStack Query, isolados por domínio (usePets,
-    │                 useTutores, useConsultas), com invalidação de cache após cada mutation
+    │                 useTutores, useConsultas, useVeterinarios), com invalidação de cache após
+    │                 cada mutation
     ├── routes/       Declaração das rotas (RootStackParamList) e o guard de autenticação
     ├── screens/      Telas, uma por arquivo, só de apresentação
     ├── types/        Tipos que espelham os DTOs reais da API Java

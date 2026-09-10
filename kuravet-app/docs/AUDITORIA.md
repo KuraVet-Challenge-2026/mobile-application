@@ -21,6 +21,7 @@ da API) e `docs/RUBRICA.md` (critérios pontuados da Sprint 3).
 | 2026-09-09 | CRUD completo de **Pet** implementado e acessível pela interface: `src/api/pets.ts` (camada de acesso a dados, nova) → `src/hooks/usePets.ts` (`usePets`/`usePet`/`useCriarPet`/`useAtualizarPet`/`useExcluirPet`) → `PetsListScreen.tsx`/`PetDetalheScreen.tsx`/`EditarPetScreen.tsx` (novas) + `CadastroPet.tsx` (revisado). Formulário de nome/espécie/raça/sexo/nascimento extraído para `src/components/FormularioPet.tsx` (primeiro componente reutilizável do projeto), compartilhado por Create e Update. | Fecha o requisito de CRUD completo (rubrica 1.2) para a primeira das duas funcionalidades escolhidas (Pet/Tutor, ver seção 3); evita duplicar validação de formulário entre Create e Update. | `docs/AUDITORIA.md` seção 3, `src/api/pets.ts`, `src/hooks/usePets.ts`, `src/components/FormularioPet.tsx` |
 | 2026-09-09 | Fluxo de autenticação (cadastro → login automático → sessão persistida → Home) verificado manualmente pelo usuário em device físico real via Expo Go, contra a API Java na rede local. Logs de diagnóstico temporários do interceptor axios (`src/api/client.ts`) removidos — mantido só o tratamento de erro permanente na UI (`erro`/`formErro` em `Login.tsx`/`Cadastro.tsx`). | V9 (rubrica, penalidade X) fechada com verificação real, não só `tsc`/`lint`; os logs cumpriram o propósito de diagnóstico e não devem seguir para a entrega final. | `docs/AUDITORIA.md` seção 2 (V9), `src/api/client.ts` |
 | 2026-09-09 | Base URL da API deixa de ser um valor estático em `app.json` (versionado) e passa a vir de `KURAVET_API_BASE_URL`, lida de `.env.local` (gitignorado) por `app.config.ts` — `app.json` removido. Adicionado `expo-build-properties` (`android.usesCleartextTraffic: true`) para permitir HTTP em claro contra a API local em builds nativos/dev client (Android bloqueia por padrão a partir do target SDK do Expo 57; não afeta o Expo Go da Play Store, que usa manifest próprio — ver `docs/RODANDO_LOCAL.md`). | Testar contra a API Java na rede local (`http://192.168.0.83:8080/api`, confirmado acessível via `/ping`) sem comitar IP de rede pessoal em arquivo versionado. | `app.config.ts`, `.env.example`, `docs/RODANDO_LOCAL.md`, `README.md` seção "Base URL por ambiente" |
+| 2026-09-10 | Backend (`java-advanced`) confirmou `GET /api/veterinarios` implementado (item 4 de `docs/PEDIDO_BACKEND.md`, testado diretamente contra a API real). `TeleconsultaScreen.tsx` deixa de ser stub: passa a listar os veterinários da clínica (nome, especialidade, CRMV), somente leitura, com um aviso de que o agendamento chega na Sprint 4. **Decisão de escopo, não gap de backend:** mesmo com o endpoint disponível, o app não implementa Create/Update/Delete de Consulta agora — só a listagem de veterinários, que é a última implementação antes do vídeo. | Faltam 2 dias para a entrega (12/09); solicitar/aprovar/recusar/cancelar consulta é escopo novo (telas, formulário, mutations, regras de transição de status) demais para caber com segurança tão perto da gravação. A listagem de veterinários já entrega valor real (nada de dado mockado na tela que antes era um stub vazio) sem esse risco. | `docs/API_CONTRACT.md` seção Veterinários, `docs/PEDIDO_BACKEND.md` item 4, `src/hooks/useVeterinarios.ts` |
 | 2026-09-10 | **Manter as rotas `Teleconsulta` e `HistoricoDiagnostico` (não remover), com plano de convertê-las em EmptyState honesto antes da gravação do vídeo — redesign ainda não executado.** O app já tem **10 telas com funcionalidade real** sem contar os dois stubs (Login, Cadastro, Home, CadastroPet, PetsList, PetDetalhe, EditarPet, EditarPerfil, Perfil, Configuracoes) — bem acima do mínimo de 6 da rubrica (seção 1.1), então remover os stubs não muda esse critério. Remover as rotas, por outro lado, quebraria `QUICK_ACTIONS` em `Home.tsx` (as ações "Nova Consulta" e "Histórico" navegam para exatamente essas duas rotas) e apagaria do app o contexto de produto do briefing CLYVO VET (continuidade terapêutica/histórico), sem necessidade — a decisão de escopo já registrada em 2026-09-09 (Teleconsulta fora da Sprint 3) continua sendo sobre não implementar Create de consulta, não sobre esconder a existência do recurso. | `docs/RUBRICA.md` seção 1.1, `README.md` (kuravet-app) seção "O que ainda não está implementado" |
 | 2026-09-03 | **Alvo da entrega é nativo (Android/iOS, emulador ou device físico); web é só conveniência de desenvolvimento, nunca o ambiente de verificação.** Armazenamento de credenciais isolado atrás de uma interface (`src/auth/secureStorage.ts`), com implementação por plataforma resolvida pelo Metro: nativo continua 100% `expo-secure-store` (sem mudança de comportamento); web usa `src/auth/secureStorage.web.ts`, um fallback só de desenvolvimento sobre `localStorage` (não é armazenamento seguro), que avisa alto no console toda vez que é acionado, para nunca passar despercebido como equivalente ao Keychain/Keystore nativos. | `expo-secure-store` não tem implementação web — `ExpoSecureStore.getValueWithKeyAsync is not a function` ao rodar `expo start --web`, reportado pelo usuário. A rubrica da Sprint 3 pede demonstração em smartphone/emulador, então corrigir para viabilizar web silenciosamente (ex.: sempre `localStorage`, sem isolar por plataforma) esconderia que a entrega real roda em outro código-caminho do que o ambiente mais conveniente de desenvolver. | `src/auth/secureStorage.ts`, `src/auth/secureStorage.web.ts`, `README.md` (seção "Plataforma alvo") |
 
@@ -103,21 +104,23 @@ ainda não.
 
 | Operação | Endpoint | Observação |
 |---|---|---|
-| Create | `POST /api/consultas/solicitacoes` | Exige `idVeterinario` válido — **sem `GET /api/veterinarios`, não há forma real de escolher um** |
+| Create | `POST /api/consultas/solicitacoes` | Exige `idVeterinario` válido — endpoint para listar veterinários já existe (`GET /api/veterinarios`, ver abaixo), mas o app **não implementa** este fluxo (decisão de escopo, seção 1, 2026-09-10) |
 | Read | `GET /api/consultas`, `GET /api/consultas/{id}` | Funciona |
 | Update | `PUT /api/consultas/{id}` | Funciona, só enquanto `SOLICITADA`/`AGENDADA` |
 | Delete | `DELETE /api/consultas/{id}` | Funciona |
 
-Read/Update/Delete são operáveis, mas sem Create real a funcionalidade não fecha um CRUD completo
-sem violar a regra de zero dados mockados. **Não escolhida agora.** Se o backend expuser
-`GET /api/veterinarios` a tempo, promover para funcionalidade 3 (reforça diretamente o critério
-"aderência ao problema" do briefing da CLYVO VET, que é sobre teleconsulta/continuidade).
+Read/Update/Delete de Consulta são operáveis, mas nenhum dos quatro (Create incluso) está
+implementado na UI — **não escolhida como funcionalidade de CRUD completo da rubrica** (seção
+1.2), mesmo com `GET /api/veterinarios` disponível agora. Motivo: com 2 dias até a entrega
+(12/09), qualquer coisa alem de leitura de veterinários (solicitar/aprovar/recusar/cancelar
+consulta) é escopo novo demais para caber com segurança antes do vídeo — ver decisão de
+2026-09-10 abaixo.
 
-**Estado da tela (`TeleconsultaScreen.tsx`):** stub — só título, sem nenhuma operação real,
-mesmo com Read/Update/Delete tecnicamente disponíveis na API (não implementados na UI porque a
-funcionalidade só foi escolhida para CRUD completo se viesse com Create real, ver decisão de
-2026-09-02 acima). Decisão de 2026-09-10: manter a rota e a entrada em "Ações Rápidas" (`Home.tsx`)
-em vez de remover — ver seção 1.
+**Estado da tela (`TeleconsultaScreen.tsx`):** deixou de ser stub em 2026-09-10 — agora lista os
+veterinários da clínica, somente leitura (`GET /api/veterinarios` → `src/api/veterinarios.ts` →
+`src/hooks/useVeterinarios.ts` → tela, com loading/vazio/erro tratados, sem dado mockado). Sem
+detalhe, sem ação, sem formulário, sem mutation. Um aviso no topo da tela explica que o
+agendamento em si chega na Sprint 4. Rota e entrada em "Ações Rápidas" (`Home.tsx`) inalteradas.
 
 ### Histórico de Diagnóstico — [FORA DE ESCOPO] sem endpoint no backend
 
@@ -163,7 +166,7 @@ para qualquer autenticado; idealmente deveria devolver lista vazia/só o própri
 
 | # | Item | Bloqueia | Status | Alternativa se não vier |
 |---|---|---|---|---|
-| 4 | `GET /api/veterinarios` | Create de Consulta/Teleconsulta (funcionalidade 3, opcional) | Aguardando backend | Mobile segue só com Pet + Tutor (funcionalidades 1 e 2); Teleconsulta fica de fora da Sprint 3 |
+| 4 | `GET /api/veterinarios` | Listar veterinários no app (leitura) | **Implementado** — confirmado em 2026-09-10, consumido por `src/hooks/useVeterinarios.ts` (`TeleconsultaScreen.tsx`) | — (item resolvido; Create de Consulta/Teleconsulta em si segue fora da Sprint 3 por decisão de escopo, não por gap de backend, ver seção 3) |
 
 ## 5. Fase 1 (Fundação) — o que foi entregue
 

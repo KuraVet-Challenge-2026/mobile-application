@@ -147,8 +147,16 @@ qualquer cliente HTTP direto (Postman, curl, outro app), fora do controle do tim
 
 ## Item 4 (não bloqueante) — `GET /api/veterinarios`
 
-**O que falta:** não existe nenhum endpoint (`VeterinarioController`) que liste veterinários. A
-entidade `Veterinario` e o `VeterinarioRepository` já existem, só falta o endpoint REST.
+**[Implementado, confirmado em 2026-09-10]** — o backend entregou `VeterinarioController`
+(`GET /api/veterinarios` e `GET /api/veterinarios/{id}`), com o formato descrito abaixo. Consumido
+pelo app mobile só para leitura, em `src/screens/TeleconsultaScreen.tsx` (lista os veterinários da
+clínica) — ver `docs/API_CONTRACT.md`, seção Veterinários, para o contrato real confirmado.
+
+Texto original do pedido, mantido como histórico:
+
+**O que faltava:** não existia nenhum endpoint (`VeterinarioController`) que listasse
+veterinários. A entidade `Veterinario` e o `VeterinarioRepository` já existiam, só faltava o
+endpoint REST.
 
 **Contrato esperado (sugestão simples, somente leitura):**
 
@@ -218,5 +226,5 @@ payload certo.
 | 1 | `POST /api/auth/cadastro` | Sim | App fica sem cadastro de novos tutores |
 | 2 | `GET /api/auth/me` | Sim | App não valida login nem obtém perfil com segurança |
 | 3 | Correção de ownership em `TutorController` | Sim | Falha de controle de acesso permanece explorável por qualquer cliente HTTP |
-| 4 | `GET /api/veterinarios` | Não | App segue só com Pet + Perfil do Tutor; Teleconsulta fica fora da Sprint 3 |
+| 4 | `GET /api/veterinarios` | Não | **Implementado (2026-09-10)** — app lista veterinários (leitura); solicitar consulta em si continua fora da Sprint 3 (decisão de escopo, ver `docs/AUDITORIA.md`) |
 | 5 | `POST /api/auth/cadastro` precisa ser público (sem exigir Basic Auth) | Sim | Cadastro de tutor novo continua inutilizável mesmo com o endpoint do item 1 implementado |
