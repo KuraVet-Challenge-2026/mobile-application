@@ -1,35 +1,82 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     View,
     Text,
     StyleSheet,
     SafeAreaView,
-    ScrollView
+    ScrollView,
+    TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../routes';
 
-import { auth } from '../config/firebaseConfig';
+import type { RootStackParamList } from '../routes';
+import { useAuth } from '../auth/AuthContext';
+import { useTutor, useExcluirTutor } from '../hooks/useTutores';
+import { getApiErrorMessage } from '../utils/apiErrorMessage';
 
 type ConfiguracoesNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Configuracoes'>;
 
+const COLORS = {
+    background: '#DDEBF7',
+    card: '#F2F7FC',
+    title: '#1E4E79',
+    subtitle: '#4C7EA8',
+    error: '#B3261E',
+    errorBg: '#F9DEDC',
+};
+
+// Tela de Read completo + entrada para Update/Delete do CRUD de "Meu Perfil" (Tutor). O id usado
+// em GET /api/tutores/{idTutor} vem sempre de useAuth().usuario.idTutor (GET /api/auth/me) —
+// nunca de navegação/input do usuário (ver aviso de dono em src/api/tutores.ts: o backend não
+// verifica isso, então é o app que precisa nunca oferecer UI para operar em outro id).
 export default function ConfiguracoesScreen() {
     const navigation = useNavigation<ConfiguracoesNavigationProp>();
-    const [userData, setUserData] = useState({
-        nome: '',
-        email: '',
-    });
+    const { usuario, logout } = useAuth();
 
-    useEffect(() => {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-            setUserData({
-                nome: currentUser.displayName || 'Usuário KuraVet',
-                email: currentUser.email || 'Não informado',
-            });
-        }
-    }, []);
+    // GET /api/tutores/{idTutor} isolado em src/hooks/useTutores.ts (CLAUDE.md regra 2). Só é
+    // chamado quando `usuario` é do perfil TUTOR (idTutor não nulo) — um VETERINARIO não tem
+    // registro de Tutor para buscar.
+    const { data: tutor, isLoading, isError, error } = useTutor(usuario?.idTutor ?? undefined);
+    const { mutate: excluirConta, isPending: isExcluindo } = useExcluirTutor();
+
+    // `usuario` vem de GET /api/auth/me — nomeTutor é nulo quando o perfil autenticado é
+    // VETERINARIO, então caímos para o username nesse caso. A API não tem conceito de e-mail de
+    // login (autenticação é HTTP Basic por username/senha, ver docs/API_CONTRACT.md).
+    const nomeExibido = usuario?.nomeTutor || usuario?.username || 'Usuário KuraVet';
+    const perfilExibido = usuario?.perfil === 'VETERINARIO' ? 'Veterinário' : 'Tutor';
+
+    function handleExcluirConta() {
+        if (!usuario?.idTutor) return;
+
+        Alert.alert(
+            'Excluir conta',
+            'Tem certeza que deseja excluir sua conta? Todos os seus dados de tutor serão removidos e você será desconectado. Essa ação não pode ser desfeita.',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Excluir conta',
+                    style: 'destructive',
+                    onPress: () => {
+                        excluirConta(usuario.idTutor as number, {
+                            onSuccess: async () => {
+                                // Encerra a sessão local imediatamente — o cadastro de Tutor (e o login
+                                // associado a ele) deixou de existir no backend, então não faz sentido manter
+                                // credenciais salvas no expo-secure-store. RootNavigator troca de stack
+                                // sozinho quando `status` vira 'nao-autenticado' (mesmo guard do logout comum).
+                                await logout();
+                            },
+                            onError: (erro) => {
+                                Alert.alert('Não foi possível excluir sua conta', getApiErrorMessage(erro));
+                            },
+                        });
+                    },
+                },
+            ]
+        );
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -37,24 +84,100 @@ export default function ConfiguracoesScreen() {
 
                 <Text style={styles.sectionHeader}>Dados da Conta</Text>
 
-                {/* Nome */}
                 <View style={styles.infoCard}>
                     <Text style={styles.infoLabel}>Nome cadastrado</Text>
-                    <Text style={styles.infoValue}>{userData.nome}</Text>
+                    <Text style={styles.infoValue}>{nomeExibido}</Text>
                 </View>
 
-                {/* E-mail */}
                 <View style={styles.infoCard}>
-                    <Text style={styles.infoLabel}>E-mail de acesso</Text>
-                    <Text style={styles.infoValue}>{userData.email}</Text>
+                    <Text style={styles.infoLabel}>Usuário de acesso</Text>
+                    <Text style={styles.infoValue}>{usuario?.username || 'Não informado'}</Text>
                 </View>
 
-                {/* Senha */}
+                <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>Perfil</Text>
+                    <Text style={styles.infoValue}>{perfilExibido}</Text>
+                </View>
+
                 <View style={styles.infoCard}>
                     <Text style={styles.infoLabel}>Senha</Text>
                     <Text style={styles.infoValue}>********</Text>
                     <Text style={styles.infoHint}>Por segurança, a senha é criptografada.</Text>
                 </View>
+
+                {/* Campos completos do Tutor (CPF, telefone, e-mail, endereço, data de cadastro) —
+                    não vêm de GET /api/auth/me (só devolve idTutor/nomeTutor), por isso a busca extra
+                    via GET /api/tutores/{idTutor}. Só faz sentido para perfil TUTOR. */}
+                {usuario?.perfil === 'TUTOR' && (
+                    <>
+                        <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>
+                            Dados de Tutor
+                        </Text>
+
+                        {isLoading && (
+                            <View style={styles.centerBox}>
+                                <ActivityIndicator color={COLORS.title} />
+                            </View>
+                        )}
+
+                        {!isLoading && isError && (
+                            <View style={styles.messageBox}>
+                                <Text style={styles.errorText}>
+                                    {getApiErrorMessage(
+                                        error,
+                                        'Não foi possível carregar seus dados completos agora. Verifique sua conexão e tente novamente.'
+                                    )}
+                                </Text>
+                            </View>
+                        )}
+
+                        {!isLoading && !isError && tutor && (
+                            <>
+                                <View style={styles.infoCard}>
+                                    <Text style={styles.infoLabel}>CPF</Text>
+                                    <Text style={styles.infoValue}>{tutor.cpf}</Text>
+                                </View>
+                                <View style={styles.infoCard}>
+                                    <Text style={styles.infoLabel}>Telefone</Text>
+                                    <Text style={styles.infoValue}>{tutor.telefone || 'Não informado'}</Text>
+                                </View>
+                                <View style={styles.infoCard}>
+                                    <Text style={styles.infoLabel}>E-mail</Text>
+                                    <Text style={styles.infoValue}>{tutor.email || 'Não informado'}</Text>
+                                </View>
+                                <View style={styles.infoCard}>
+                                    <Text style={styles.infoLabel}>Endereço</Text>
+                                    <Text style={styles.infoValue}>{tutor.endereco || 'Não informado'}</Text>
+                                </View>
+                                <View style={styles.infoCard}>
+                                    <Text style={styles.infoLabel}>Cadastro desde</Text>
+                                    <Text style={styles.infoValue}>{tutor.dataCadastro}</Text>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.editButton}
+                                    activeOpacity={0.8}
+                                    onPress={() => navigation.navigate('EditarPerfil')}
+                                >
+                                    <Text style={styles.editButtonText}>EDITAR PERFIL</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.deleteButton, isExcluindo && styles.buttonDisabled]}
+                                    activeOpacity={0.8}
+                                    onPress={handleExcluirConta}
+                                    disabled={isExcluindo}
+                                >
+                                    {isExcluindo ? (
+                                        <ActivityIndicator color={COLORS.error} />
+                                    ) : (
+                                        <Text style={styles.deleteButtonText}>EXCLUIR CONTA</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </>
+                        )}
+                    </>
+                )}
 
             </ScrollView>
         </SafeAreaView>
@@ -64,7 +187,7 @@ export default function ConfiguracoesScreen() {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#DDEBF7',
+        backgroundColor: COLORS.background,
     },
     container: {
         flexGrow: 1,
@@ -75,13 +198,16 @@ const styles = StyleSheet.create({
     sectionHeader: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#4C7EA8',
+        color: COLORS.subtitle,
         marginBottom: 12,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
+    sectionHeaderSpaced: {
+        marginTop: 8,
+    },
     infoCard: {
-        backgroundColor: '#F2F7FC',
+        backgroundColor: COLORS.card,
         borderRadius: 20,
         paddingVertical: 16,
         paddingHorizontal: 20,
@@ -95,18 +221,70 @@ const styles = StyleSheet.create({
     infoLabel: {
         fontSize: 12,
         fontWeight: '700',
-        color: '#4C7EA8',
+        color: COLORS.subtitle,
         marginBottom: 4,
         textTransform: 'uppercase',
     },
     infoValue: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#1E4E79',
+        color: COLORS.title,
     },
     infoHint: {
         fontSize: 11,
         color: '#8CAECF',
         marginTop: 4,
+    },
+
+    centerBox: {
+        paddingVertical: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    messageBox: {
+        backgroundColor: COLORS.card,
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+    },
+    errorText: {
+        color: COLORS.error,
+        fontSize: 14,
+        textAlign: 'center',
+        lineHeight: 20,
+    },
+
+    editButton: {
+        backgroundColor: '#C9DEF2',
+        borderRadius: 14,
+        paddingVertical: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 8,
+    },
+    editButtonText: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: '#333333',
+        letterSpacing: 0.5,
+    },
+    deleteButton: {
+        backgroundColor: COLORS.errorBg,
+        borderRadius: 14,
+        paddingVertical: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: '#F3C6C3',
+    },
+    buttonDisabled: {
+        opacity: 0.7,
+    },
+    deleteButtonText: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: COLORS.error,
+        letterSpacing: 0.5,
     },
 });

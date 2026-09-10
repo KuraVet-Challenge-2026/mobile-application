@@ -16,11 +16,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 import type { RootStackParamList } from '../routes';
-import { auth } from '../config/firebaseConfig';
-import { getFirebaseAuthErrorMessage } from '../utils/firebaseErrorMessage';
+import { useAuth } from '../auth/AuthContext';
 
 type CadastroNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cadastro'>;
 
@@ -43,11 +41,19 @@ try {
   logoSource = null;
 }
 
+// E-mail é opcional no contrato de POST /api/auth/cadastro — só validamos o formato quando
+// algo foi digitado (ver docs/API_CONTRACT.md).
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Cadastro() {
   const navigation = useNavigation<CadastroNavigationProp>();
+  const { cadastro } = useAuth();
 
   const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [senhaVisivel, setSenhaVisivel] = useState(false);
@@ -58,8 +64,23 @@ export default function Cadastro() {
   async function handleCadastro() {
     if (isLoading) return;
 
-    if (!nome.trim() || !email.trim() || !senha || !confirmarSenha) {
-      setErro('Preencha todos os campos para continuar.');
+    if (!nome.trim() || !cpf.trim() || !username.trim() || !senha || !confirmarSenha) {
+      setErro('Preencha nome, CPF, usuário e senha para continuar.');
+      return;
+    }
+    // Validação frouxa de formato (só a contagem de dígitos): a API não documenta uma máscara
+    // exigida (ver PetRequestDTO/TutorRequestDTO em docs/API_CONTRACT.md), só que o campo é
+    // obrigatório — aqui só evitamos mandar um CPF obviamente incompleto.
+    if (cpf.replace(/\D/g, '').length !== 11) {
+      setErro('Informe um CPF válido (11 dígitos).');
+      return;
+    }
+    if (email.trim() && !EMAIL_REGEX.test(email.trim())) {
+      setErro('Informe um e-mail válido ou deixe o campo em branco.');
+      return;
+    }
+    if (senha.length < 6) {
+      setErro('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
     if (senha !== confirmarSenha) {
@@ -70,23 +91,28 @@ export default function Cadastro() {
 
     setIsLoading(true);
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email.trim(), senha);
-
-      // Guarda o nome informado no perfil do usuário (não é enviado no create).
-      // Isolado em seu próprio try/catch de propósito: a conta já foi criada e
-      // autenticada neste ponto, então uma falha aqui (ex.: rede) não deve
-      // impedir o usuário de navegar para a Home.
-      try {
-        await updateProfile(user, { displayName: nome.trim() });
-      } catch (profileError) {
-        console.warn('Não foi possível salvar o nome no perfil do usuário:', profileError);
-      }
-
-      // `reset` em vez de `navigate`: limpa o histórico da stack para que o
-      // botão "voltar" do dispositivo não leve de volta ao formulário.
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      // cadastro() chama POST /api/auth/cadastro e, em caso de sucesso, já reaproveita login()
+      // com as mesmas credenciais (ver src/auth/AuthContext.tsx) — persiste a sessão e atualiza
+      // o `status` do AuthContext. Não navegamos manualmente: RootNavigator troca sozinho de
+      // stack quando `status` vira 'autenticado' (mesmo raciocínio de Login.tsx).
+      await cadastro({
+        nome: nome.trim(),
+        cpf: cpf.trim(),
+        telefone: telefone.trim() || undefined,
+        email: email.trim() || undefined,
+        username: username.trim(),
+        senha,
+      });
     } catch (error) {
-      Alert.alert('Não foi possível cadastrar', getFirebaseAuthErrorMessage(error));
+      const mensagem =
+        error instanceof Error ? error.message : 'Não foi possível cadastrar. Tente novamente.';
+      // Alert.alert é um no-op silencioso no Expo Web (react-native-web substitui o módulo por
+      // uma função vazia — não existe diálogo nativo no browser) — sem o texto inline abaixo,
+      // qualquer falha de rede/timeout/API nessa plataforma fazia o botão só voltar do loading
+      // sem nenhum feedback, como se nada tivesse acontecido. Mantemos Alert.alert para
+      // iOS/Android (onde funciona normalmente) e duplicamos em `erro`, que é sempre visível.
+      setErro(mensagem);
+      Alert.alert('Não foi possível cadastrar', mensagem);
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +150,7 @@ export default function Cadastro() {
             <Text style={styles.subtitle}>Crie sua conta para começar</Text>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Nome</Text>
+              <Text style={styles.label}>Nome completo</Text>
               <TextInput
                 style={styles.input}
                 value={nome}
@@ -139,7 +165,20 @@ export default function Cadastro() {
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>E-mail</Text>
+              <Text style={styles.label}>CPF</Text>
+              <TextInput
+                style={styles.input}
+                value={cpf}
+                onChangeText={setCpf}
+                placeholder="000.000.000-00"
+                placeholderTextColor={COLORS.textMuted}
+                keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'numeric'}
+                returnKeyType="next"
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>E-mail (opcional)</Text>
               <TextInput
                 style={styles.input}
                 value={email}
@@ -155,13 +194,43 @@ export default function Cadastro() {
             </View>
 
             <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Telefone (opcional)</Text>
+              <TextInput
+                style={styles.input}
+                value={telefone}
+                onChangeText={setTelefone}
+                placeholder="(11) 91234-5601"
+                placeholderTextColor={COLORS.textMuted}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+                textContentType="telephoneNumber"
+                returnKeyType="next"
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Usuário</Text>
+              <TextInput
+                style={styles.input}
+                value={username}
+                onChangeText={setUsername}
+                placeholder="Como você vai entrar no app"
+                placeholderTextColor={COLORS.textMuted}
+                autoCapitalize="none"
+                autoComplete="username"
+                textContentType="username"
+                returnKeyType="next"
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
               <Text style={styles.label}>Senha</Text>
               <View style={styles.passwordRow}>
                 <TextInput
                   style={styles.passwordInput}
                   value={senha}
                   onChangeText={setSenha}
-                  placeholder="Crie uma senha"
+                  placeholder="Mínimo 6 caracteres"
                   placeholderTextColor={COLORS.textMuted}
                   secureTextEntry={!senhaVisivel}
                   autoCapitalize="none"

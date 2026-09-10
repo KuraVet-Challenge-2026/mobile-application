@@ -11,58 +11,26 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useQuery } from '@tanstack/react-query';
 
-import api from '../services/api';
 import type { RootStackParamList } from '../routes';
+import type { Consulta } from '../types';
+import { useConsultas } from '../hooks/useConsultas';
 
 type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-// GET /consultas — baseURL do axios (src/services/api.ts) já termina em "/api".
-// TODO: tipar o retorno da API (payload real do backend Java) quando o
-// contrato de dados for definido; por ora usamos `any` propositalmente.
-async function fetchConsultas(): Promise<any> {
-  const { data } = await api.get('/consultas');
-  return data;
-}
+// `route` restrito às rotas sem parâmetro obrigatório (diferente de PetDetalhe/EditarPet, que
+// exigem `{ idPet }`) — sem essa restrição `navigation.navigate(action.route)` não teria como o
+// TS garantir que a rota escolhida em runtime não precisa de params.
+type RotaSemParametro = {
+  [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never;
+}[keyof RootStackParamList];
 
-// Dados genéricos exibidos apenas para o layout não quebrar caso a API
-// responda com sucesso mas sem nenhum registro ainda cadastrado.
-const CONSULTAS_FALLBACK = [
-  {
-    id: 'fallback-1',
-    petNome: 'Thor',
-    tutorNome: 'Ana Souza',
-    veterinario: 'Dra. Camila Reis',
-    data: 'Hoje às 15:30',
-    status: 'Agendada',
-  },
-  {
-    id: 'fallback-2',
-    petNome: 'Mel',
-    tutorNome: 'Bruno Lima',
-    veterinario: 'Dr. Felipe Nogueira',
-    data: 'Amanhã às 09:00',
-    status: 'Confirmada',
-  },
-  {
-    id: 'fallback-3',
-    petNome: 'Nina',
-    tutorNome: 'Carla Dias',
-    veterinario: 'Dra. Camila Reis',
-    data: '21/08 às 11:15',
-    status: 'Agendada',
-  },
-];
-
-// `route` tipado com as rotas reais da stack (RootStackParamList) para que
-// `navigation.navigate(action.route)` abaixo compile sem erros de TS.
 const QUICK_ACTIONS: {
   key: string;
   label: string;
   icon?: string;
   image?: any;
-  route: keyof RootStackParamList;
+  route: RotaSemParametro;
 }[] = [
     {
       key: 'consulta',
@@ -74,7 +42,7 @@ const QUICK_ACTIONS: {
       key: 'pets',
       label: 'Meus Pets',
       image: require('../../assets/Cachorro Caramelho.jpg'),
-      route: 'CadastroPet'
+      route: 'PetsList'
     },
     {
       key: 'historico',
@@ -84,24 +52,35 @@ const QUICK_ACTIONS: {
     },
   ];
 
-const STATUS_STYLES: Record<string, { backgroundColor: string; color: string }> = {
-  Agendada: { backgroundColor: '#C9DEF2', color: '#1E4E79' },
-  Confirmada: { backgroundColor: '#9FC6EA', color: '#12385C' },
-  Concluída: { backgroundColor: '#DDEBF7', color: '#2D6FA3' },
+// Rótulos e cores por status real de ConsultaResponseDTO (ver docs/API_CONTRACT.md — máquina de
+// estados em ConsultaController): SOLICITADA -> AGENDADA -> REALIZADA, com RECUSADA/CANCELADA
+// como estados terminais alternativos.
+const STATUS_LABELS: Record<Consulta['status'], string> = {
+  SOLICITADA: 'Solicitada',
+  AGENDADA: 'Agendada',
+  REALIZADA: 'Realizada',
+  CANCELADA: 'Cancelada',
+  RECUSADA: 'Recusada',
 };
 
-function StatusBadge({ status }: { status?: string }) {
-  const style = (status && STATUS_STYLES[status]) || STATUS_STYLES.Agendada;
+const STATUS_STYLES: Record<Consulta['status'], { backgroundColor: string; color: string }> = {
+  SOLICITADA: { backgroundColor: '#DDEBF7', color: '#2D6FA3' },
+  AGENDADA: { backgroundColor: '#C9DEF2', color: '#1E4E79' },
+  REALIZADA: { backgroundColor: '#9FC6EA', color: '#12385C' },
+  CANCELADA: { backgroundColor: '#F9DEDC', color: '#B3261E' },
+  RECUSADA: { backgroundColor: '#F9DEDC', color: '#B3261E' },
+};
+
+function StatusBadge({ status }: { status: Consulta['status'] }) {
+  const style = STATUS_STYLES[status];
   return (
     <View style={[styles.statusBadge, { backgroundColor: style.backgroundColor }]}>
-      <Text style={[styles.statusBadgeText, { color: style.color }]}>{status ?? 'Agendada'}</Text>
+      <Text style={[styles.statusBadgeText, { color: style.color }]}>{STATUS_LABELS[status]}</Text>
     </View>
   );
 }
 
-// `consulta` ainda não tem um tipo forte (payload da API não definido nesta
-// etapa da migração) — usamos `any` propositalmente aqui, conforme combinado.
-function ConsultaCard({ consulta, isFallback }: { consulta: any; isFallback: boolean }) {
+function ConsultaCard({ consulta }: { consulta: Consulta }) {
   return (
     <View style={styles.consultaCard}>
       {/* Placeholder: futuramente receberá a foto real do pet/tutor */}
@@ -110,21 +89,16 @@ function ConsultaCard({ consulta, isFallback }: { consulta: any; isFallback: boo
       <View style={styles.consultaInfo}>
         <View style={styles.consultaInfoHeader}>
           <Text style={styles.consultaPetNome} numberOfLines={1}>
-            {consulta?.petNome ?? consulta?.pet?.nome ?? 'Pet sem nome'}
+            {consulta.nomePet}
           </Text>
-          {isFallback && (
-            <View style={styles.previewTag}>
-              <Text style={styles.previewTagText}>Exemplo</Text>
-            </View>
-          )}
         </View>
         <Text style={styles.consultaDetail} numberOfLines={1}>
-          {consulta?.veterinario ?? consulta?.medico ?? 'Veterinário a definir'}
+          {consulta.nomeVeterinario}
         </Text>
-        <Text style={styles.consultaData}>{consulta?.data ?? consulta?.dataHora ?? 'Data a definir'}</Text>
+        <Text style={styles.consultaData}>{consulta.dataConsulta}</Text>
       </View>
 
-      <StatusBadge status={consulta?.status} />
+      <StatusBadge status={consulta.status} />
     </View>
   );
 }
@@ -132,17 +106,11 @@ function ConsultaCard({ consulta, isFallback }: { consulta: any; isFallback: boo
 export default function Home() {
   const navigation = useNavigation<HomeNavigationProp>();
 
-  const {
-    data: consultas,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['consultas'],
-    queryFn: fetchConsultas,
-  });
+  // GET /api/consultas isolado em src/hooks/useConsultas.ts (CLAUDE.md regra 2) — TUTOR
+  // autenticado só recebe as próprias consultas, filtradas no backend.
+  const { data: consultas, isLoading, isError } = useConsultas();
 
-  const temDadosReais = !isLoading && !isError && Array.isArray(consultas) && consultas.length > 0;
-  const listaExibida = temDadosReais ? consultas : CONSULTAS_FALLBACK;
+  const listaVazia = !isLoading && !isError && (!consultas || consultas.length === 0);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -223,14 +191,18 @@ export default function Home() {
             </View>
           )}
 
+          {listaVazia && (
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyText}>
+                Você ainda não tem consultas. Toque em &quot;Nova Consulta&quot; para solicitar uma.
+              </Text>
+            </View>
+          )}
+
           {!isLoading &&
             !isError &&
-            listaExibida.map((consulta, index) => (
-              <ConsultaCard
-                key={consulta?.id ?? index}
-                consulta={consulta}
-                isFallback={!temDadosReais}
-              />
+            consultas?.map((consulta) => (
+              <ConsultaCard key={consulta.idConsulta} consulta={consulta} />
             ))}
         </View>
       </ScrollView>
@@ -384,6 +356,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  emptyBox: {
+    backgroundColor: '#F2F7FC',
+    borderRadius: 16,
+    padding: 16,
+  },
+  emptyText: {
+    color: '#4C7EA8',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   consultaCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -412,18 +395,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1E4E79',
     flexShrink: 1,
-  },
-  previewTag: {
-    marginLeft: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: '#DDEBF7',
-  },
-  previewTagText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4C7EA8',
   },
   consultaDetail: {
     marginTop: 3,

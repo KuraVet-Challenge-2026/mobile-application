@@ -16,11 +16,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 
 import type { RootStackParamList } from '../routes';
-import { auth } from '../config/firebaseConfig';
-import { getFirebaseAuthErrorMessage } from '../utils/firebaseErrorMessage';
+import { useAuth } from '../auth/AuthContext';
 
 type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -46,30 +44,40 @@ try {
 
 export default function Login() {
   const navigation = useNavigation<LoginNavigationProp>();
+  const { login } = useAuth();
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
   const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [formErro, setFormErro] = useState('');
   const [logoFailed, setLogoFailed] = useState(false);
 
   async function handleLogin() {
     if (isLoading) return;
 
-    if (!email.trim() || !senha) {
-      Alert.alert('Campos obrigatórios', 'Informe e-mail e senha para continuar.');
+    if (!username.trim() || !senha) {
+      setFormErro('Informe usuário e senha para continuar.');
       return;
     }
+    setFormErro('');
 
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), senha);
-
-      // `reset` em vez de `navigate`: limpa o histórico da stack para que o
-      // botão "voltar" do dispositivo não leve de volta à tela de Login.
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      // login() já valida a combinação contra GET /api/auth/me e só persiste a credencial
+      // depois de confirmada (ver src/auth/AuthContext.tsx). Não navegamos manualmente: assim
+      // que o `status` do AuthContext vira 'autenticado', RootNavigator (src/routes/index.tsx)
+      // troca sozinho do AuthStack para o AppStack (guard de navegação, CLAUDE.md regra 3) —
+      // era exatamente a falta disso que travava o app antes (docs/AUDITORIA.md, item V9).
+      await login(username.trim(), senha);
     } catch (error) {
-      Alert.alert('Não foi possível entrar', getFirebaseAuthErrorMessage(error));
+      const mensagem =
+        error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.';
+      // Mesmo problema documentado em Cadastro.tsx: Alert.alert é um no-op no Expo Web
+      // (react-native-web não implementa diálogo nativo), então sem o texto inline abaixo o
+      // login falhava silenciosamente nessa plataforma. Alert.alert mantido para iOS/Android.
+      setFormErro(mensagem);
+      Alert.alert('Não foi possível entrar', mensagem);
     } finally {
       setIsLoading(false);
     }
@@ -107,17 +115,16 @@ export default function Login() {
             <Text style={styles.subtitle}>Entre para cuidar do seu pet</Text>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>E-mail</Text>
+              <Text style={styles.label}>Usuário</Text>
               <TextInput
                 style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="seuemail@exemplo.com"
+                value={username}
+                onChangeText={setUsername}
+                placeholder="Seu usuário"
                 placeholderTextColor={COLORS.textMuted}
                 autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                textContentType="emailAddress"
+                autoComplete="username"
+                textContentType="username"
                 returnKeyType="next"
               />
             </View>
@@ -144,6 +151,8 @@ export default function Login() {
               </View>
             </View>
 
+            {!!formErro && <Text style={styles.errorText}>{formErro}</Text>}
+
             <TouchableOpacity
               style={[styles.button, isLoading && styles.buttonDisabled]}
               activeOpacity={0.8}
@@ -155,15 +164,6 @@ export default function Login() {
               ) : (
                 <Text style={styles.buttonText}>ENTRAR</Text>
               )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.forgotPassword}
-              activeOpacity={0.7}
-              // TODO: navegar para o fluxo de recuperação de senha quando existir.
-              onPress={() => {}}
-            >
-              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
           </View>
 
@@ -285,6 +285,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 
+  // ---- Feedback de validação ----
+  errorText: {
+    color: '#B3261E',
+    fontSize: 13,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+
   // ---- Ações ----
   button: {
     backgroundColor: COLORS.primary,
@@ -302,14 +310,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.text,
     letterSpacing: 0.5,
-  },
-  forgotPassword: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  forgotPasswordText: {
-    fontSize: 13,
-    color: COLORS.textMuted,
   },
 
   // ---- Rodapé ----

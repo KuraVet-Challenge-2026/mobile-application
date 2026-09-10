@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../routes';
 
-import { auth } from '../config/firebaseConfig';
-import { signOut } from 'firebase/auth';
+import { useAuth } from '../auth/AuthContext';
 
 type PerfilNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Perfil'>;
 
@@ -28,20 +27,11 @@ const getInitials = (name?: string | null) => {
 
 export default function PerfilScreen() {
   const navigation = useNavigation<PerfilNavigationProp>();
-  const [userInfo, setUserInfo] = useState({
-    nome: '',
-    email: '',
-  });
+  const { usuario, logout } = useAuth();
 
-  useEffect(() => {
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      setUserInfo({
-        nome: currentUser.displayName || 'Usuário KuraVet',
-        email: currentUser.email || 'E-mail não cadastrado',
-      });
-    }
-  }, []);
+  // `usuario` vem de GET /api/auth/me (ver src/auth/AuthContext.tsx) — nomeTutor é nulo quando o
+  // perfil autenticado é VETERINARIO, então caímos para o username nesse caso.
+  const nomeExibido = usuario?.nomeTutor || usuario?.username || 'Usuário KuraVet';
 
   const handleLogout = () => {
     Alert.alert(
@@ -54,12 +44,11 @@ export default function PerfilScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await signOut(auth);
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
-            } catch (error) {
+              await logout();
+              // Não precisa navegar manualmente: assim que `status` volta para
+              // 'nao-autenticado', RootNavigator (src/routes/index.tsx) troca sozinho para o
+              // AuthStack (guard de navegação, CLAUDE.md regra 3).
+            } catch {
               Alert.alert("Erro", "Não foi possível encerrar a sessão.");
             }
           }
@@ -75,10 +64,10 @@ export default function PerfilScreen() {
         {/* Cabeçalho do Perfil */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>{getInitials(userInfo.nome)}</Text>
+            <Text style={styles.avatarText}>{getInitials(nomeExibido)}</Text>
           </View>
-          <Text style={styles.userName}>{userInfo.nome}</Text>
-          <Text style={styles.userEmail}>{userInfo.email}</Text>
+          <Text style={styles.userName}>{nomeExibido}</Text>
+          <Text style={styles.userEmail}>{usuario?.username ?? ''}</Text>
         </View>
 
         {/* Menu de Configurações */}
