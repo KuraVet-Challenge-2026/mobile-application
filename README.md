@@ -1,215 +1,130 @@
-# 🐾 KuraVet Mobile
+# KuraVet — Aplicativo do Tutor
 
-Aplicativo móvel desenvolvido para o Challenge FIAP, focado na gestão de saúde e agendamento de consultas veterinárias para animais de estimação. O projeto prioriza uma interface fluida, usabilidade e estabilidade local.
+Aplicativo mobile desenvolvido para o Challenge FIAP 2026 em parceria com a CLYVO VET, na disciplina Mobile Application Development (2º ano de Análise e Desenvolvimento de Sistemas).
 
----
+## Integrantes
 
-# 👥 Equipe de Desenvolvimento
+| Nome completo | RM |
+| --- | --- |
+| Pedro Henrique Luiz Alves Duarte | _563405 |
+| Guilherme Macedo Martins | 562396 |
+| Henrique Martins | 563620|
 
-- **Pedro Henrique Luiz Alves Duarte**
-- **Guilherme Macedo Martins**
-- **Henrique Martins**
+## Vídeo de apresentação
 
-> Turma: 2TDSPO / FIAP
+[![Assista a Demonstração](https://youtube.com/shorts/a63KcsQltqU?is=kmSPCPqYz-ERG6no)
 
----
 
-# 🚀 Tecnologias Utilizadas
+## O problema
 
-O projeto foi construído utilizando as seguintes tecnologias e bibliotecas:
+O mercado pet brasileiro tem alto potencial de recorrência, mas o contato entre clínica e tutor costuma acontecer apenas em situações de urgência ou em gatilhos óbvios, como a vacinação. Consultas preventivas e check-ups são esquecidos, o histórico do animal fica espalhado entre atendimentos avulsos e o vínculo entre a clínica e o responsável se mantém fraco ao longo da vida do pet.
 
-- **[React Native](https://reactnative.dev/)** com **[Expo](https://expo.dev/)**
-  - Framework principal para desenvolvimento mobile cross-platform.
+O resultado é uma jornada de cuidado descontínua: o tutor só age quando algo já deu errado.
 
-- **[TypeScript](https://www.typescriptlang.org/)**
-  - Tipagem estática para maior segurança e qualidade do código.
+## A solução
 
-- **[React Navigation](https://reactnavigation.org/)**
-  - Gerenciamento de rotas e navegação em abas (*Bottom Tabs*).
+O KuraVet é o aplicativo do tutor dentro dessa jornada. Ele centraliza o cadastro dos animais sob responsabilidade de uma pessoa, mantém os dados do próprio tutor atualizados e dá visibilidade à rede de veterinários disponível, servindo como ponto de entrada para o acompanhamento contínuo da saúde do pet.
 
-- **[AsyncStorage](https://react-native-async-storage.github.io/async-storage/)**
-  - Persistência de dados local (simulação de banco de dados).
+Toda informação exibida vem da API REST desenvolvida pelo grupo na disciplina de Java Advanced. O aplicativo não guarda dados de negócio localmente nem trabalha com conteúdo simulado.
 
----
+## Funcionalidades
 
-# ✨ Funcionalidades Implementadas
+**Autenticação**
+Cadastro e login contra a API Java, com credenciais armazenadas em `expo-secure-store`. A sessão é reidratada na abertura do aplicativo, de modo que o usuário não precisa autenticar novamente. O logout encerra a sessão e bloqueia imediatamente o acesso às telas protegidas.
 
-A aplicação foi estruturada para garantir o **“caminho feliz” completo do utilizador**, totalmente offline e à prova de falhas de rede durante a avaliação.
+**Meus pets (CRUD completo)**
+Cadastro, listagem, visualização em detalhe, edição e exclusão dos animais do tutor autenticado. A lista reflete qualquer alteração automaticamente, sem necessidade de recarregar ou reiniciar o aplicativo.
 
----
+**Meu perfil (CRUD completo)**
+Leitura dos dados completos do tutor, edição dos campos cadastrais e exclusão da própria conta com confirmação. O identificador do tutor vem sempre da sessão autenticada; nenhuma tela aceita identificador arbitrário.
 
-## 🔐 Autenticação e Sessão
+**Veterinários**
+Listagem, somente leitura, dos profissionais disponíveis, com nome, especialidade e CRMV.
 
-### ✅ Login e Cadastro Local
-Sistema real de verificação de credenciais. O tutor pode criar uma conta com validação de:
+## Escopo: o que ficou fora da Sprint 3
 
-- Formato de e-mail
-- Tamanho mínimo de senha
+O agendamento de teleconsultas e o histórico de diagnósticos estão previstos para a Sprint 4. As telas correspondentes existem e informam essa condição de forma explícita, sem simular funcionalidade.
 
-### ✅ UX Avançada no Login
+## Tecnologias
 
-- Utilização de `KeyboardAvoidingView`
-- Feedback visual com `ActivityIndicator`
-- Logotipo da equipa integrado
+As dependências principais utilizadas no ecossistema deste projeto são:
 
-### ✅ Gestão de Sessão
+| Item | Versão |
+| --- | --- |
+| React Native | 0.86.3 |
+| Expo SDK | ~57.0.21|
+| TypeScript | ~6.0.3 |
+| React Navigation | ^7.3.16 |
+| TanStack Query | ^5.101.4 |
+| Axios | ^1.19.0 |
+| expo-secure-store | ~57.0.3|
 
-- Persistência da sessão do utilizador
-- Mantém o utilizador logado mesmo após fechar o aplicativo
-- Botão **“Sair”** disponível nas rotas protegidas
+A camada de dados usa TanStack Query para consultas e mutações, com invalidação de cache após cada escrita. As chamadas HTTP passam por um cliente Axios único, com interceptor responsável pelo cabeçalho de autorização.
 
----
-
-## 🐶 Gestão de Pets (“Meus Pets”)
-
-### Funcionalidades:
-
-- Cadastro de pets com máscaras em tempo real:
-  - Data de Nascimento (`DD/MM/AAAA`)
-  - Peso (`00.0 kg`)
-
-- Listagem dinâmica utilizando `AsyncStorage`
-
-- Remoção de pets com:
-  - Alerta de confirmação nativo
-  - Segurança contra cliques acidentais
-
----
-
-## 📅 Agendamento de Consultas
-
-### Funcionalidades:
-
-- Formulário para marcação de consultas
-- Máscaras de:
-  - Data
-  - Hora (`HH:MM`)
-
-- Persistência local das consultas
-
-- Cancelamento de consultas com:
-  - Confirmação dupla
-  - Segurança contra exclusão acidental
-
-- Botão auxiliar para limpar rapidamente os campos
-
----
-
-## 🩺 Guia de Saúde
-
-Ecrã informativo contendo:
-
-- Diretrizes de primeiros socorros
-- Triagem veterinária rápida:
-  - Frequência Respiratória
-  - TPC
-  - Mucosa
-  - Hidratação
-
----
-
-# 🏗️ Arquitetura do Projeto
-
-O código segue uma arquitetura baseada em camadas (*Layered Architecture*) adaptada para React Native, garantindo separação de responsabilidades.
+## Arquitetura
 
 ```text
-kuravet-mobile/
-├── assets/                 # Imagens, ícones e logotipo (logo.png)
-├── src/
-│   ├── components/         # Componentes reutilizáveis
-│   ├── contexts/           # Estados globais (AuthContext.tsx)
-│   ├── routes/             # Configuração do React Navigation (index.tsx)
-│   ├── screens/            # Telas da aplicação
-│   │   ├── Login
-│   │   ├── Pets
-│   │   ├── Agendamento
-│   │   └── Guia
-│   └── theme/              # Identidade visual (colors.ts)
-├── App.tsx                 # Ponto de entrada da aplicação
-└── app.json                # Configurações do Expo
-```
+src/
+  api/          funções tipadas por recurso, uma por endpoint
+  auth/         contexto de autenticação, sessão e armazenamento seguro
+  components/   componentes reutilizáveis
+  hooks/        hooks de consulta e mutação, isolados da interface
+  routes/       navegação e proteção de rotas por estado de autenticação
+  screens/      telas, responsáveis apenas por apresentação
+  types/        tipos espelhando os contratos da API
+  utils/        utilitários compartilhados
 
----
+A separação é estrita: nenhuma tela executa chamada HTTP diretamente e nenhuma regra de negócio vive em componente de interface. A navegação é feita exclusivamente por rotas declaradas no React Navigation, e o acesso às telas internas depende do estado de autenticação.
 
-# 🎨 Identidade Visual
+## Pré-requisitos
 
-A paleta de cores foi aplicada em todos os os componentes para garantir uma interface agradável e profissional.
+- Node.js 18 ou superior
+- Aplicativo Expo Go instalado no smartphone
+- API Java do projeto em execução (repositório `java-advanced`)
+- Smartphone e computador na mesma rede Wi-Fi
 
-| Elemento | Cor |
-|---|---|
-| Primária (Vinho) | `#5D4057` |
-| Secundária (Terracota) | `#B55D5D` |
-| Fundo (Off-White) | `#F9F1F1` |
-| Branco (Cards/Textos) | `#FFFFFF` |
+## Como executar
 
----
+**1. Suba a API Java**
 
-# 🛠️ Como Executar o Projeto
+Siga as instruções do repositório `java-advanced`. Confirme que ela responde antes de continuar.
 
-> Como o projeto utiliza o Expo, não é necessário instalar Android Studio ou Xcode.
+**2. Descubra o IP da sua máquina na rede local**
 
----
+No Windows, execute `ipconfig` e use o endereço IPv4 do adaptador Wi-Fi.
 
-## 1️⃣ Clone o repositório
+No macOS ou Linux, use `ifconfig` ou `ip addr`.
 
-```bash
-git clone https://github.com/KuraVet-Challenge-2026/mobile-application.git
-```
+**3. Configure a URL da API**
 
----
+Crie um arquivo `.env.local` na raiz do projeto:
 
-## 2️⃣ Acesse a pasta do projeto
+```env
+KURAVET_API_BASE_URL=http://SEU_IP:8080/api
 
-```bash
-cd mobile-application/kuravet-mobile
-```
+O arquivo não é versionado, porque o endereço varia conforme a máquina e a rede.
 
----
-
-## 3️⃣ Instale as dependências
+**4. Instale as dependências e inicie**
 
 ```bash
 npm install
-```
-
----
-
-## 4️⃣ Inicie o servidor local do Expo
-
-```bash
 npx expo start
-```
 
----
+**5. Abra no dispositivo**
 
-## 5️⃣ Visualize no dispositivo
+Escaneie o QR Code com o Expo Go.
 
-1. Baixe o aplicativo **Expo Go** no Android ou iOS
-2. Certifique-se de que o celular e o computador estão na mesma rede Wi-Fi
-3. Escaneie o QR Code gerado no terminal com o Expo Go
+Para conferir a conectividade antes de abrir o aplicativo, acesse `http://SEU_IP:8080/api/ping` pelo navegador do celular.
 
----
+Informe `http://` explicitamente: o navegador do Android força HTTPS ao receber um endereço IP.
 
-# 📌 Notas de Avaliação (Decisões de Projeto)
+Instruções detalhadas e solução de problemas comuns estão em [`docs/RODANDO_LOCAL.md`](docs/RODANDO_LOCAL.md).
 
-Para fins de estabilidade durante a avaliação académica, dependências externas como **Axios** e integrações com APIs Java/Docker foram intencionalmente substituídas pelo uso estruturado do:
+## Documentação complementar
 
-```bash
-@react-native-async-storage/async-storage
-```
-
-Essa decisão garante que todas as operações de CRUD:
-
-- Create
-- Read
-- Update
-- Delete
-
-ocorram de forma:
-
-- Instantânea
-- Offline
-- Estável
-- Imune a falhas de rede nos laboratórios da instituição.
-
----
+| **Arquivo** | **Conteúdo** |
+| --- | --- |
+| `docs/API_CONTRACT.md` | Contrato dos endpoints consumidos |
+| `docs/RUBRICA.md` | Critérios avaliativos da Sprint 3 |
+| `docs/AUDITORIA.md` | Registro de decisões e pendências do projeto |
+| `docs/RODANDO_LOCAL.md` | Execução em ambiente local |
