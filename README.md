@@ -12,7 +12,9 @@ Aplicativo mobile desenvolvido para o Challenge FIAP 2026 em parceria com a CLYV
 
 ## Vídeo de apresentação
 
-[![Assista a Demonstração](https://youtube.com/shorts/a63KcsQltqU?is=kmSPCPqYz-ERG6no)
+https://youtube.com/shorts/a63KcsQltqU?is=kmSPCPqYz-ERG6no 
+
+
 
 
 ## O problema
