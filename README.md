@@ -122,4 +122,15 @@ Informe `http://` explicitamente: o navegador do Android força HTTPS ao receber
 
 Instruções detalhadas e solução de problemas comuns estão em [`docs/RODANDO_LOCAL.md`](docs/RODANDO_LOCAL.md).
 
+<<<<<<< HEAD
 
+=======
+## Documentação complementar
+
+| **Arquivo** | **Conteúdo** |
+| --- | --- |
+| `docs/API_CONTRACT.md` | Contrato dos endpoints consumidos |
+| `docs/RUBRICA.md` | Critérios avaliativos da Sprint 3 |
+| `docs/AUDITORIA.md` | Registro de decisões e pendências do projeto |
+| `docs/RODANDO_LOCAL.md` | Execução em ambiente local |
+>>>>>>> a7068ad3efe320668245e69a6f9ee0502cf241ef
