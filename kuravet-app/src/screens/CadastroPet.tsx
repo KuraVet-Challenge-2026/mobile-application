@@ -19,17 +19,8 @@ import type { PetInput } from '../types';
 
 type CadastroPetNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CadastroPet'>;
 
-// Tela de Create do CRUD de Pet — só orquestra navegação/mutation/feedback; o formulário em si
-// (campos, validação) fica em src/components/FormularioPet.tsx, compartilhado com
-// EditarPetScreen.tsx (Update). Nenhuma chamada HTTP aqui (CLAUDE.md regra 2) — tudo passa por
-// useCriarPet (src/hooks/usePets.ts).
 export default function CadastroPet() {
   const navigation = useNavigation<CadastroPetNavigationProp>();
-  // O dono do pet é sempre o TUTOR autenticado — a API resolve isso a partir do header
-  // Authorization (POST /pets não aceita idTutor no corpo, ver docs/API_CONTRACT.md). `usuario`
-  // vem de GET /api/auth/me (src/auth/AuthContext.tsx). Conferimos aqui antes de submeter: sem
-  // idTutor, nem vale tentar — evita um 400/403 confuso vindo do backend por um estado que o app
-  // já sabia ser inválido.
   const { usuario } = useAuth();
   const { mutate, isPending } = useCriarPet();
 

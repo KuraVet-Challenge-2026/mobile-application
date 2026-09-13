@@ -22,8 +22,7 @@ import { useAuth } from '../auth/AuthContext';
 
 type CadastroNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cadastro'>;
 
-// Paleta oficial do KuraVet — mantida estritamente para as telas de autenticação
-// (idêntica à de src/screens/Login.tsx, para preservar a mesma identidade visual).
+
 const COLORS = {
   background: '#DDEBF7',
   card: '#F2F7FC',
@@ -32,8 +31,7 @@ const COLORS = {
   textMuted: '#666666',
 };
 
-// Ver comentário equivalente em Login.tsx: try/catch cobre o asset sendo removido
-// do projeto, `onError` (mais abaixo) cobre falha de decodificação em runtime.
+
 let logoSource: ImageSourcePropType | null = null;
 try {
   logoSource = require('../../assets/logo.png');
@@ -41,8 +39,7 @@ try {
   logoSource = null;
 }
 
-// E-mail é opcional no contrato de POST /api/auth/cadastro — só validamos o formato quando
-// algo foi digitado (ver docs/API_CONTRACT.md).
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Cadastro() {
@@ -68,9 +65,7 @@ export default function Cadastro() {
       setErro('Preencha nome, CPF, usuário e senha para continuar.');
       return;
     }
-    // Validação frouxa de formato (só a contagem de dígitos): a API não documenta uma máscara
-    // exigida (ver PetRequestDTO/TutorRequestDTO em docs/API_CONTRACT.md), só que o campo é
-    // obrigatório — aqui só evitamos mandar um CPF obviamente incompleto.
+    
     if (cpf.replace(/\D/g, '').length !== 11) {
       setErro('Informe um CPF válido (11 dígitos).');
       return;
@@ -91,10 +86,7 @@ export default function Cadastro() {
 
     setIsLoading(true);
     try {
-      // cadastro() chama POST /api/auth/cadastro e, em caso de sucesso, já reaproveita login()
-      // com as mesmas credenciais (ver src/auth/AuthContext.tsx) — persiste a sessão e atualiza
-      // o `status` do AuthContext. Não navegamos manualmente: RootNavigator troca sozinho de
-      // stack quando `status` vira 'autenticado' (mesmo raciocínio de Login.tsx).
+
       await cadastro({
         nome: nome.trim(),
         cpf: cpf.trim(),
@@ -106,11 +98,7 @@ export default function Cadastro() {
     } catch (error) {
       const mensagem =
         error instanceof Error ? error.message : 'Não foi possível cadastrar. Tente novamente.';
-      // Alert.alert é um no-op silencioso no Expo Web (react-native-web substitui o módulo por
-      // uma função vazia — não existe diálogo nativo no browser) — sem o texto inline abaixo,
-      // qualquer falha de rede/timeout/API nessa plataforma fazia o botão só voltar do loading
-      // sem nenhum feedback, como se nada tivesse acontecido. Mantemos Alert.alert para
-      // iOS/Android (onde funciona normalmente) e duplicamos em `erro`, que é sempre visível.
+
       setErro(mensagem);
       Alert.alert('Não foi possível cadastrar', mensagem);
     } finally {

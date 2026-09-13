@@ -41,9 +41,6 @@ function Campo({ label, valor }: { label: string; valor: string }) {
   );
 }
 
-// Tela de Read (detalhe) + entrada para Update/Delete do CRUD de Pet. GET /api/pets/{id}
-// isolado em src/hooks/usePets.ts — 404 se o pet não existir ou não for do tutor autenticado
-// (backend nunca revela pet de terceiro, ver docs/API_CONTRACT.md).
 export default function PetDetalheScreen() {
   const navigation = useNavigation<PetDetalheNavigationProp>();
   const { params } = useRoute<PetDetalheRouteProp>();
@@ -67,9 +64,6 @@ export default function PetDetalheScreen() {
                 navigation.goBack();
               },
               onError: (erro) => {
-                // Backend bloqueia exclusão de pet com consultas registradas (400, regra de
-                // negócio) — a mensagem já vem pronta do ApiExceptionHandler, sem precisar
-                // traduzir esse caso especificamente aqui.
                 Alert.alert('Não foi possível excluir', getApiErrorMessage(erro));
               },
             });

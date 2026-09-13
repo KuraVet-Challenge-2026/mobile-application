@@ -31,23 +31,13 @@ const COLORS = {
   textMuted: '#666666',
 };
 
-// Mesma validação frouxa de formato usada em Cadastro.tsx (CPF só pela contagem de dígitos; a
-// API não documenta máscara exigida, só que o campo é obrigatório).
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Tela de Update do "Meu Perfil" (Tutor). O id usado em PUT /api/tutores/{idTutor} vem sempre de
-// useAuth().usuario.idTutor — nunca de navegação/param (esta rota não recebe nenhum param, ver
-// src/routes/index.tsx), pelo mesmo motivo documentado em src/api/tutores.ts (TutorController não
-// verifica dono). Formulário não é compartilhado com nenhuma tela de Create — diferente do Pet,
-// aqui não existe uma tela de "criar tutor" no app (o cadastro de tutor é o fluxo de
-// Cadastro.tsx/POST /api/auth/cadastro, que também cria o login e tem campos diferentes).
 export default function EditarPerfilScreen() {
   const navigation = useNavigation<EditarPerfilNavigationProp>();
   const { usuario } = useAuth();
   const idTutor = usuario?.idTutor ?? undefined;
 
-  // Reaproveita o cache de GET /api/tutores/{idTutor} já populado por ConfiguracoesScreen.tsx
-  // (mesma query key, ver src/hooks/useTutores.ts) — normalmente chega aqui sem nova requisição.
   const { data: tutor, isLoading, isError, error } = useTutor(idTutor);
   const { mutate, isPending } = useAtualizarTutor();
 
@@ -67,10 +57,6 @@ export default function EditarPerfilScreen() {
           </Text>
         </View>
       ) : (
-        // `key`: garante que o formulário nasça com o estado inicial certo caso o tutor em cache
-        // mude (ex.: refetch depois de editar em outra aba) — useState(initializer) roda de novo
-        // ao remontar, sem precisar de useEffect+setState espelhando a resposta da API (o mesmo
-        // tipo de problema já pego pelo lint antes, ver docs/AUDITORIA.md V8).
         <FormularioPerfil
           key={tutor.idTutor}
           tutor={tutor}

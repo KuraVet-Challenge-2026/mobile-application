@@ -16,16 +16,13 @@ import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 import EditarPerfilScreen from '../screens/EditarPerfilScreen';
 import { useAuth } from '../auth/AuthContext';
 
-// Mantido como um único tipo (em vez de um por stack) para que nenhuma tela precise mudar seu
-// `NativeStackNavigationProp<RootStackParamList, 'X'>` quando as rotas são divididas entre
-// AuthStack e AppStack abaixo — cada `Stack.Navigator` só registra o subconjunto que usa.
+
 export type RootStackParamList = {
   Login: undefined;
   Cadastro: undefined;
   Home: undefined;
   CadastroPet: undefined;
-  // CRUD de Pet (Read/Update) — Create é CadastroPet acima, sem mudança de rota para não
-  // quebrar quem já navega para lá (ex.: Home.tsx > "+ Novo Pet" dentro de PetsListScreen).
+  
   PetsList: undefined;
   PetDetalhe: { idPet: number };
   EditarPet: { idPet: number };
@@ -33,15 +30,13 @@ export type RootStackParamList = {
   Teleconsulta: undefined;
   Perfil: undefined;
   Configuracoes: undefined;
-  // Update do "Meu Perfil" (Tutor) — sem param: o id sempre vem de useAuth().usuario.idTutor,
-  // nunca de navegação (ver src/api/tutores.ts sobre a falta de verificação de dono no backend).
+
   EditarPerfil: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-/** Rotas acessíveis sem sessão. Login/Cadastro autenticam via `useAuth().login()`/`useAuth().cadastro()`
- * (API Java, HTTP Basic) — ver src/auth/AuthContext.tsx. */
+
 function AuthStackNavigator() {
   return (
     <Stack.Navigator initialRouteName="Login">
@@ -51,7 +46,6 @@ function AuthStackNavigator() {
   );
 }
 
-/** Rotas protegidas — só alcançáveis quando `status === 'autenticado'` (ver RootNavigator). */
 function AppStackNavigator() {
   return (
     <Stack.Navigator initialRouteName="Home">
@@ -101,13 +95,6 @@ function TelaCarregando() {
   );
 }
 
-/**
- * Guard de autenticação: decide qual stack montar com base no estado real de sessão
- * (`AuthContext`, com lastro na API Java via `expo-secure-store`) — nunca renderização
- * condicional dentro de uma tela como substituto de navegação (regra 3 do CLAUDE.md). Enquanto a
- * sessão ainda está sendo reidratada do device (`status === 'carregando'`), mostra um loading em
- * vez de decidir errado e piscar para a tela de login.
- */
 export default function RootNavigator() {
   const { status } = useAuth();
 

@@ -28,23 +28,13 @@ const COLORS = {
     errorBg: '#F9DEDC',
 };
 
-// Tela de Read completo + entrada para Update/Delete do CRUD de "Meu Perfil" (Tutor). O id usado
-// em GET /api/tutores/{idTutor} vem sempre de useAuth().usuario.idTutor (GET /api/auth/me) —
-// nunca de navegação/input do usuário (ver aviso de dono em src/api/tutores.ts: o backend não
-// verifica isso, então é o app que precisa nunca oferecer UI para operar em outro id).
 export default function ConfiguracoesScreen() {
     const navigation = useNavigation<ConfiguracoesNavigationProp>();
     const { usuario, logout } = useAuth();
 
-    // GET /api/tutores/{idTutor} isolado em src/hooks/useTutores.ts (CLAUDE.md regra 2). Só é
-    // chamado quando `usuario` é do perfil TUTOR (idTutor não nulo) — um VETERINARIO não tem
-    // registro de Tutor para buscar.
     const { data: tutor, isLoading, isError, error } = useTutor(usuario?.idTutor ?? undefined);
     const { mutate: excluirConta, isPending: isExcluindo } = useExcluirTutor();
 
-    // `usuario` vem de GET /api/auth/me — nomeTutor é nulo quando o perfil autenticado é
-    // VETERINARIO, então caímos para o username nesse caso. A API não tem conceito de e-mail de
-    // login (autenticação é HTTP Basic por username/senha, ver docs/API_CONTRACT.md).
     const nomeExibido = usuario?.nomeTutor || usuario?.username || 'Usuário KuraVet';
     const perfilExibido = usuario?.perfil === 'VETERINARIO' ? 'Veterinário' : 'Tutor';
 
@@ -62,10 +52,6 @@ export default function ConfiguracoesScreen() {
                     onPress: () => {
                         excluirConta(usuario.idTutor as number, {
                             onSuccess: async () => {
-                                // Encerra a sessão local imediatamente — o cadastro de Tutor (e o login
-                                // associado a ele) deixou de existir no backend, então não faz sentido manter
-                                // credenciais salvas no expo-secure-store. RootNavigator troca de stack
-                                // sozinho quando `status` vira 'nao-autenticado' (mesmo guard do logout comum).
                                 await logout();
                             },
                             onError: (erro) => {
@@ -105,9 +91,6 @@ export default function ConfiguracoesScreen() {
                     <Text style={styles.infoHint}>Por segurança, a senha é criptografada.</Text>
                 </View>
 
-                {/* Campos completos do Tutor (CPF, telefone, e-mail, endereço, data de cadastro) —
-                    não vêm de GET /api/auth/me (só devolve idTutor/nomeTutor), por isso a busca extra
-                    via GET /api/tutores/{idTutor}. Só faz sentido para perfil TUTOR. */}
                 {usuario?.perfil === 'TUTOR' && (
                     <>
                         <Text style={[styles.sectionHeader, styles.sectionHeaderSpaced]}>

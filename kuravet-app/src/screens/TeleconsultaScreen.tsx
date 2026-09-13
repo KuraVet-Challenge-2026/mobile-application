@@ -14,12 +14,7 @@ const COLORS = {
   error: '#B3261E',
 };
 
-/**
- * Read-only: lista os veterinários da clínica (GET /api/veterinarios, ver
- * src/hooks/useVeterinarios.ts). Sem detalhe, sem ação, sem formulário, sem mutation — o fluxo
- * de solicitar uma teleconsulta (Create) continua fora da Sprint 3, ver aviso no topo da tela e
- * docs/AUDITORIA.md.
- */
+
 function VeterinarioCard({ veterinario }: { veterinario: Veterinario }) {
   return (
     <View style={styles.card}>

@@ -22,10 +22,6 @@ import type { PetInput } from '../types';
 type EditarPetNavigationProp = NativeStackNavigationProp<RootStackParamList, 'EditarPet'>;
 type EditarPetRouteProp = RouteProp<RootStackParamList, 'EditarPet'>;
 
-// Tela de Update do CRUD de Pet. GET /api/pets/{id} para carregar os valores atuais (mesma
-// query key de PetDetalheScreen.tsx, ver src/hooks/usePets.ts — normalmente já está em cache) e
-// PUT /api/pets/{id} para salvar (useAtualizarPet). Formulário compartilhado com CadastroPet.tsx
-// (src/components/FormularioPet.tsx) — mesma validação de campo nos dois fluxos.
 export default function EditarPetScreen() {
   const navigation = useNavigation<EditarPetNavigationProp>();
   const { params } = useRoute<EditarPetRouteProp>();
@@ -87,12 +83,6 @@ export default function EditarPetScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* `key`: se o param idPet mudasse sem desmontar a tela (não acontece pela navegação
-              atual, mas evita a armadilha), força o formulário a reinicializar os valores a
-              partir do pet novo em vez de continuar com o estado interno do pet anterior. O
-              formulário nasce direto de `pet` via useState(initializer) dentro de
-              FormularioPet — sem useEffect+setState espelhando a resposta da API (o mesmo tipo
-              de problema já pego pelo lint como V8, ver docs/AUDITORIA.md). */}
           <FormularioPet
             key={pet.idPet}
             titulo="Editar Pet"

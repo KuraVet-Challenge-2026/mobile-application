@@ -48,9 +48,6 @@ function PetCard({ pet, onPress }: { pet: Pet; onPress: () => void }) {
   );
 }
 
-// Tela de Read (listagem) do CRUD de Pet — Home.tsx > "Meus Pets" chega aqui. GET /api/pets
-// isolado em src/hooks/usePets.ts (CLAUDE.md regra 2): TUTOR autenticado só recebe os próprios
-// pets, filtrados no backend. Sem dado mockado — lista vazia é um estado real, tratado abaixo.
 export default function PetsListScreen() {
   const navigation = useNavigation<PetsListNavigationProp>();
   const { data: pets, isLoading, isError, error, isFetching, refetch } = usePets();
@@ -63,9 +60,6 @@ export default function PetsListScreen() {
         data={pets ?? []}
         keyExtractor={(pet) => String(pet.idPet)}
         contentContainerStyle={styles.listContent}
-        // Puxar para atualizar reflete qualquer alteração feita fora do app (ex.: pelo portal do
-        // veterinário) sem precisar reabrir a tela — além da invalidação automática que já
-        // acontece após criar/editar/excluir pelo próprio app (ver src/hooks/usePets.ts).
         refreshControl={
           <RefreshControl refreshing={isFetching && !isLoading} onRefresh={refetch} />
         }

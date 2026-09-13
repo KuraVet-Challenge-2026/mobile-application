@@ -22,7 +22,6 @@ import { useAuth } from '../auth/AuthContext';
 
 type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
-// Paleta oficial do KuraVet — mantida estritamente para as telas de autenticação.
 const COLORS = {
   background: '#DDEBF7',
   card: '#F2F7FC',
@@ -31,10 +30,6 @@ const COLORS = {
   textMuted: '#666666',
 };
 
-// `require` de asset é resolvido estaticamente pelo Metro; o try/catch cobre o
-// cenário de o arquivo ser removido do projeto futuramente sem quebrar o bundle,
-// e o estado `logoFailed` (via `onError`) cobre falha em runtime (ex.: arquivo
-// corrompido). Com os dois, a logo nunca derruba a tela.
 let logoSource: ImageSourcePropType | null = null;
 try {
   logoSource = require('../../assets/logo.png');
@@ -64,18 +59,10 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      // login() já valida a combinação contra GET /api/auth/me e só persiste a credencial
-      // depois de confirmada (ver src/auth/AuthContext.tsx). Não navegamos manualmente: assim
-      // que o `status` do AuthContext vira 'autenticado', RootNavigator (src/routes/index.tsx)
-      // troca sozinho do AuthStack para o AppStack (guard de navegação, CLAUDE.md regra 3) —
-      // era exatamente a falta disso que travava o app antes (docs/AUDITORIA.md, item V9).
       await login(username.trim(), senha);
     } catch (error) {
       const mensagem =
         error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.';
-      // Mesmo problema documentado em Cadastro.tsx: Alert.alert é um no-op no Expo Web
-      // (react-native-web não implementa diálogo nativo), então sem o texto inline abaixo o
-      // login falhava silenciosamente nessa plataforma. Alert.alert mantido para iOS/Android.
       setFormErro(mensagem);
       Alert.alert('Não foi possível entrar', mensagem);
     } finally {
@@ -195,10 +182,6 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
 
-  // ---- Logo ----
-  // 140 (antes 96): proporcional ao card de login, que vai até 400 de largura — 96 ficava
-  // pequeno demais ao lado dele. logoFallback (quando o asset falha) escala junto, senão o
-  // fallback voltaria a ficar desproporcional ao card mesmo com a logo real corrigida.
   logo: {
     width: 140,
     height: 140,
@@ -219,7 +202,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
 
-  // ---- Card central (flat shadow) ----
   card: {
     width: '100%',
     maxWidth: 400,

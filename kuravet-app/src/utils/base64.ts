@@ -1,10 +1,7 @@
-// Codificador base64 autocontido, sem depender de `btoa`/`Buffer` (nenhum dos dois é garantido
-// em todo runtime — Hermes, JSC ou web via Metro). Usado para montar o header HTTP Basic exigido
-// pela API Java (ver docs/API_CONTRACT.md, seção Autenticação).
+
 const BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
-// Converte para bytes UTF-8 antes de codificar — necessário porque usuário/senha podem ter
-// acentos (nome de usuário derivado do nome do tutor, por exemplo).
+
 function paraBytesUtf8(texto: string): number[] {
   const bytes: number[] = [];
 

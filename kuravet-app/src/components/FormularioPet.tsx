@@ -11,8 +11,6 @@ import {
 
 import type { PetInput, Sexo } from '../types';
 
-// Paleta oficial do KuraVet — mesma identidade visual das telas de autenticação (ver CLAUDE.md:
-// ainda replicada por arquivo, sem tema centralizado; fora do escopo desta fase de CRUD).
 export const FORM_PET_COLORS = {
   background: '#DDEBF7',
   card: '#F2F7FC',
@@ -37,22 +35,14 @@ export interface FormularioPetValoresIniciais {
 }
 
 interface FormularioPetProps {
-  /** Omitido no fluxo de Create (formulário em branco); passado pelo EditarPetScreen. */
   valoresIniciais?: FormularioPetValoresIniciais;
   titulo?: string;
   subtitulo?: string;
   textoBotao: string;
   isPending: boolean;
-  /** Só é chamado depois da validação de campo passar — quem recebe decide POST ou PUT. */
   onSubmit: (payload: PetInput) => void;
 }
 
-// Formulário de dados do Pet (nome, espécie, raça, sexo, nascimento): validação de campo
-// obrigatório/formato e emissão de um PetInput já validado. Compartilhado entre
-// src/screens/CadastroPet.tsx (Create) e src/screens/EditarPetScreen.tsx (Update) — mesma UI e
-// mesma regra de validação nos dois fluxos, sem duplicar componente. Não faz nenhuma chamada à
-// API: quem chama `onSubmit` decide qual hook usar (useCriarPet/useAtualizarPet, ver
-// src/hooks/usePets.ts) — este componente fica só na camada de apresentação (CLAUDE.md regra 2).
 export default function FormularioPet({
   valoresIniciais,
   titulo = 'Dados do Pet',

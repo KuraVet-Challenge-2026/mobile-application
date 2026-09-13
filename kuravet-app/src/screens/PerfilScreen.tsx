@@ -29,8 +29,6 @@ export default function PerfilScreen() {
   const navigation = useNavigation<PerfilNavigationProp>();
   const { usuario, logout } = useAuth();
 
-  // `usuario` vem de GET /api/auth/me (ver src/auth/AuthContext.tsx) — nomeTutor é nulo quando o
-  // perfil autenticado é VETERINARIO, então caímos para o username nesse caso.
   const nomeExibido = usuario?.nomeTutor || usuario?.username || 'Usuário KuraVet';
 
   const handleLogout = () => {
@@ -45,9 +43,6 @@ export default function PerfilScreen() {
           onPress: async () => {
             try {
               await logout();
-              // Não precisa navegar manualmente: assim que `status` volta para
-              // 'nao-autenticado', RootNavigator (src/routes/index.tsx) troca sozinho para o
-              // AuthStack (guard de navegação, CLAUDE.md regra 3).
             } catch {
               Alert.alert("Erro", "Não foi possível encerrar a sessão.");
             }

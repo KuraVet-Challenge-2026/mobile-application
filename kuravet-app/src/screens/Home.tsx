@@ -18,9 +18,6 @@ import { useConsultas } from '../hooks/useConsultas';
 
 type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-// `route` restrito às rotas sem parâmetro obrigatório (diferente de PetDetalhe/EditarPet, que
-// exigem `{ idPet }`) — sem essa restrição `navigation.navigate(action.route)` não teria como o
-// TS garantir que a rota escolhida em runtime não precisa de params.
 type RotaSemParametro = {
   [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never;
 }[keyof RootStackParamList];
@@ -52,9 +49,6 @@ const QUICK_ACTIONS: {
     },
   ];
 
-// Rótulos e cores por status real de ConsultaResponseDTO (ver docs/API_CONTRACT.md — máquina de
-// estados em ConsultaController): SOLICITADA -> AGENDADA -> REALIZADA, com RECUSADA/CANCELADA
-// como estados terminais alternativos.
 const STATUS_LABELS: Record<Consulta['status'], string> = {
   SOLICITADA: 'Solicitada',
   AGENDADA: 'Agendada',
@@ -83,7 +77,6 @@ function StatusBadge({ status }: { status: Consulta['status'] }) {
 function ConsultaCard({ consulta }: { consulta: Consulta }) {
   return (
     <View style={styles.consultaCard}>
-      {/* Placeholder: futuramente receberá a foto real do pet/tutor */}
       <View style={styles.consultaThumb} />
 
       <View style={styles.consultaInfo}>
@@ -106,8 +99,6 @@ function ConsultaCard({ consulta }: { consulta: Consulta }) {
 export default function Home() {
   const navigation = useNavigation<HomeNavigationProp>();
 
-  // GET /api/consultas isolado em src/hooks/useConsultas.ts (CLAUDE.md regra 2) — TUTOR
-  // autenticado só recebe as próprias consultas, filtradas no backend.
   const { data: consultas, isLoading, isError } = useConsultas();
 
   const listaVazia = !isLoading && !isError && (!consultas || consultas.length === 0);
@@ -115,7 +106,6 @@ export default function Home() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header: saudação + placeholder de foto de perfil */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Olá, tudo bem?</Text>
@@ -129,7 +119,6 @@ export default function Home() {
           />
         </View>
 
-        {/* Ações rápidas */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ações Rápidas</Text>
           <ScrollView

@@ -2,19 +2,10 @@ import React from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 type EmptyStateProps = {
-  /** Texto explicando, sem fingir funcionalidade, por que a tela está vazia hoje e quando deixa
-   * de estar (ver uso em TeleconsultaScreen.tsx / HistoricoDiagnosticoScreen.tsx). */
+
   mensagem: string;
 };
 
-/**
- * Estado vazio honesto para uma funcionalidade prevista mas ainda não implementada — usado por
- * telas cuja rota já existe (alcançável pela Home, ver `src/routes/index.tsx`) mas cujo escopo
- * ficou fora da Sprint 3 (decisão de 2026-09-10 em `docs/AUDITORIA.md`, seção 1). O título da
- * tela já vem do header de navegação (`options.title`/nome da rota em
- * `src/routes/index.tsx`) — este componente só explica o motivo, nunca simula dado ou
- * funcionalidade real (CLAUDE.md regra 1).
- */
 export default function EmptyState({ mensagem }: EmptyStateProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
