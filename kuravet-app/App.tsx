@@ -7,6 +7,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './src/routes';
 import { AuthProvider } from './src/auth/AuthContext';
 import { NAVIGATION_DARK_THEME, NAVIGATION_LIGHT_THEME, useAppTheme } from './src/theme';
+import { configurarNotificacoes, PreparadorNotificacoes } from './src/notifications';
+
+configurarNotificacoes();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +31,7 @@ export default function App() {
         <StatusBar style={isDark ? 'light' : 'dark'} />
 
         <AuthProvider>
+          <PreparadorNotificacoes />
           <NavigationContainer theme={isDark ? NAVIGATION_DARK_THEME : NAVIGATION_LIGHT_THEME}>
             <RootNavigator />
           </NavigationContainer>

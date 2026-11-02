@@ -15,6 +15,7 @@ import PerfilScreen from '../screens/PerfilScreen';
 import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 import EditarPerfilScreen from '../screens/EditarPerfilScreen';
 import TriagemScreen from '../screens/TriagemScreen';
+import SobreAppScreen from '../screens/SobreAppScreen';
 import { useAuth } from '../auth/AuthContext';
 
 
@@ -34,6 +35,7 @@ export type RootStackParamList = {
   Configuracoes: undefined;
 
   EditarPerfil: undefined;
+  SobreApp: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -85,6 +87,11 @@ function AppStackNavigator() {
         name="EditarPerfil"
         component={EditarPerfilScreen}
         options={{ title: 'Editar Perfil' }}
+      />
+      <Stack.Screen
+        name="SobreApp"
+        component={SobreAppScreen}
+        options={{ title: 'Sobre o App' }}
       />
     </Stack.Navigator>
   );

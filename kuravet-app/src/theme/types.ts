@@ -19,6 +19,11 @@ export interface PaletaCores {
   error: string;
   errorBackground: string;
   errorBorder: string;
+  onPrimary: string;
+  sombra: string;
+  destaqueSuave: string;
+  textTerciario: string;
+  iconeSutil: string;
   statusConsulta: Record<StatusConsulta, CorBadge>;
   urgencia: Record<NivelUrgencia, CorBadge>;
 }
