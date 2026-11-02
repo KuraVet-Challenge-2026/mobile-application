@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import RootNavigator from './src/routes';
 import { AuthProvider } from './src/auth/AuthContext';
+import { NAVIGATION_DARK_THEME, NAVIGATION_LIGHT_THEME, useAppTheme } from './src/theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,13 +20,15 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const { isDark } = useAppTheme();
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <StatusBar style="auto" />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
 
         <AuthProvider>
-          <NavigationContainer>
+          <NavigationContainer theme={isDark ? NAVIGATION_DARK_THEME : NAVIGATION_LIGHT_THEME}>
             <RootNavigator />
           </NavigationContainer>
         </AuthProvider>
