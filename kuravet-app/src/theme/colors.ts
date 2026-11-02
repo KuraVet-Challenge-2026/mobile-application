@@ -12,6 +12,11 @@ export const LIGHT_COLORS: PaletaCores = {
   error: '#B3261E',
   errorBackground: '#F9DEDC',
   errorBorder: '#F3C6C3',
+  onPrimary: '#FFFFFF',
+  sombra: '#000000',
+  destaqueSuave: '#FCE8E8',
+  textTerciario: '#8CAECF',
+  iconeSutil: '#A3C1DA',
   statusConsulta: {
     SOLICITADA: { background: '#DDEBF7', texto: '#2D6FA3' },
     AGENDADA: { background: '#C9DEF2', texto: '#1E4E79' },
@@ -39,6 +44,11 @@ export const DARK_COLORS: PaletaCores = {
   error: '#FF8A80',
   errorBackground: '#3B1613',
   errorBorder: '#5C2B27',
+  onPrimary: '#0F1B2B',
+  sombra: '#000000',
+  destaqueSuave: '#45201E',
+  textTerciario: '#7FA3C4',
+  iconeSutil: '#5E85A8',
   statusConsulta: {
     SOLICITADA: { background: '#1C3350', texto: '#8FC2EC' },
     AGENDADA: { background: '#1F3B57', texto: '#AFD4F2' },
