@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -10,14 +10,8 @@ import {
 } from 'react-native';
 
 import type { PetInput, Sexo } from '../types';
-
-export const FORM_PET_COLORS = {
-  background: '#DDEBF7',
-  card: '#F2F7FC',
-  primary: '#C9DEF2',
-  text: '#333333',
-  textMuted: '#666666',
-};
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 export const ESPECIES = ['Cachorro', 'Gato'] as const;
 type Especie = (typeof ESPECIES)[number];
@@ -51,6 +45,9 @@ export default function FormularioPet({
   isPending,
   onSubmit,
 }: FormularioPetProps) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
+
   const [nome, setNome] = useState(valoresIniciais?.nome ?? '');
   const [especie, setEspecie] = useState<Especie | null>(
     (valoresIniciais?.especie as Especie | undefined) ?? null
@@ -101,7 +98,7 @@ export default function FormularioPet({
           value={nome}
           onChangeText={setNome}
           placeholder="Ex.: Thor"
-          placeholderTextColor={FORM_PET_COLORS.textMuted}
+          placeholderTextColor={colors.textMuted}
           autoCapitalize="words"
           returnKeyType="next"
         />
@@ -133,7 +130,7 @@ export default function FormularioPet({
           value={raca}
           onChangeText={setRaca}
           placeholder="Ex.: Golden Retriever"
-          placeholderTextColor={FORM_PET_COLORS.textMuted}
+          placeholderTextColor={colors.textMuted}
           autoCapitalize="words"
           returnKeyType="next"
         />
@@ -165,7 +162,7 @@ export default function FormularioPet({
           value={dataNascimento}
           onChangeText={setDataNascimento}
           placeholder="AAAA-MM-DD"
-          placeholderTextColor={FORM_PET_COLORS.textMuted}
+          placeholderTextColor={colors.textMuted}
           keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'numeric'}
           maxLength={10}
           returnKeyType="done"
@@ -182,7 +179,7 @@ export default function FormularioPet({
         disabled={isPending}
       >
         {isPending ? (
-          <ActivityIndicator color={FORM_PET_COLORS.text} />
+          <ActivityIndicator color={colors.text} />
         ) : (
           <Text style={styles.buttonText}>{textoBotao}</Text>
         )}
@@ -191,98 +188,100 @@ export default function FormularioPet({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: FORM_PET_COLORS.card,
-    borderRadius: 28,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: FORM_PET_COLORS.text,
-    textAlign: 'center',
-  },
-  subtitle: {
-    marginTop: 6,
-    fontSize: 13,
-    color: FORM_PET_COLORS.textMuted,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 28,
+      padding: 24,
+      shadowColor: c.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: c.text,
+      textAlign: 'center',
+    },
+    subtitle: {
+      marginTop: 6,
+      fontSize: 13,
+      color: c.textMuted,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
 
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: FORM_PET_COLORS.text,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: FORM_PET_COLORS.card,
-    borderWidth: 1.5,
-    borderColor: FORM_PET_COLORS.primary,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: FORM_PET_COLORS.text,
-  },
+    fieldGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: c.text,
+      marginBottom: 6,
+    },
+    input: {
+      backgroundColor: c.card,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: c.text,
+    },
 
-  toggleRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  toggleOption: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: FORM_PET_COLORS.card,
-    borderWidth: 1.5,
-    borderColor: FORM_PET_COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  toggleOptionSelecionada: {
-    backgroundColor: FORM_PET_COLORS.primary,
-  },
-  toggleLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: FORM_PET_COLORS.text,
-  },
+    toggleRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    toggleOption: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.card,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 12,
+      gap: 8,
+    },
+    toggleOptionSelecionada: {
+      backgroundColor: c.primary,
+    },
+    toggleLabel: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: c.text,
+    },
 
-  errorText: {
-    color: '#B3261E',
-    fontSize: 13,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+    errorText: {
+      color: c.error,
+      fontSize: 13,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
 
-  button: {
-    backgroundColor: FORM_PET_COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: FORM_PET_COLORS.text,
-    letterSpacing: 0.5,
-  },
-});
+    button: {
+      backgroundColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: {
+      opacity: 0.7,
+    },
+    buttonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: c.text,
+      letterSpacing: 0.5,
+    },
+  });
+}

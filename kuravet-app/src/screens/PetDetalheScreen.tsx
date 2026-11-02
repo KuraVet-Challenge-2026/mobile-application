@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,23 +16,17 @@ import type { RootStackParamList } from '../routes';
 import type { Sexo } from '../types';
 import { usePet, useExcluirPet } from '../hooks/usePets';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type PetDetalheNavigationProp = NativeStackNavigationProp<RootStackParamList, 'PetDetalhe'>;
 type PetDetalheRouteProp = RouteProp<RootStackParamList, 'PetDetalhe'>;
 
-const COLORS = {
-  background: '#DDEBF7',
-  card: '#F2F7FC',
-  primary: '#C9DEF2',
-  title: '#1E4E79',
-  subtitle: '#4C7EA8',
-  error: '#B3261E',
-  errorBg: '#F9DEDC',
-};
+type EstilosPetDetalhe = ReturnType<typeof criarEstilos>;
 
 const SEXO_LABEL: Record<Sexo, string> = { M: 'Macho', F: 'Fêmea' };
 
-function Campo({ label, valor }: { label: string; valor: string }) {
+function Campo({ label, valor, styles }: { label: string; valor: string; styles: EstilosPetDetalhe }) {
   return (
     <View style={styles.campo}>
       <Text style={styles.campoLabel}>{label}</Text>
@@ -45,6 +39,8 @@ export default function PetDetalheScreen() {
   const navigation = useNavigation<PetDetalheNavigationProp>();
   const { params } = useRoute<PetDetalheRouteProp>();
   const { idPet } = params;
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   const { data: pet, isLoading, isError, error } = usePet(idPet);
   const { mutate: excluir, isPending: isExcluindo } = useExcluirPet();
@@ -77,7 +73,7 @@ export default function PetDetalheScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.centerBox}>
-          <ActivityIndicator color={COLORS.primary} size="large" />
+          <ActivityIndicator color={colors.primary} size="large" />
         </View>
       </SafeAreaView>
     );
@@ -107,10 +103,10 @@ export default function PetDetalheScreen() {
           </View>
           <Text style={styles.nome}>{pet.nome}</Text>
 
-          <Campo label="Espécie" valor={pet.especie} />
-          <Campo label="Raça" valor={pet.raca || 'Não informada'} />
-          <Campo label="Sexo" valor={SEXO_LABEL[pet.sexo]} />
-          <Campo label="Nascimento" valor={pet.dataNascimento} />
+          <Campo label="Espécie" valor={pet.especie} styles={styles} />
+          <Campo label="Raça" valor={pet.raca || 'Não informada'} styles={styles} />
+          <Campo label="Sexo" valor={SEXO_LABEL[pet.sexo]} styles={styles} />
+          <Campo label="Nascimento" valor={pet.dataNascimento} styles={styles} />
         </View>
 
         <TouchableOpacity
@@ -136,7 +132,7 @@ export default function PetDetalheScreen() {
           disabled={isExcluindo}
         >
           {isExcluindo ? (
-            <ActivityIndicator color={COLORS.error} />
+            <ActivityIndicator color={colors.error} />
           ) : (
             <Text style={styles.deleteButtonText}>EXCLUIR</Text>
           )}
@@ -146,115 +142,117 @@ export default function PetDetalheScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  centerBox: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  messageBox: {
-    margin: 20,
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+    },
+    centerBox: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    messageBox: {
+      margin: 20,
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+    },
+    errorText: {
+      color: c.error,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
 
-  card: {
-    backgroundColor: COLORS.card,
-    borderRadius: 28,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  avatarText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: COLORS.title,
-  },
-  nome: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.title,
-    marginBottom: 20,
-  },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 28,
+      padding: 24,
+      alignItems: 'center',
+      shadowColor: c.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    avatar: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    avatarText: {
+      fontSize: 26,
+      fontWeight: '800',
+      color: c.title,
+    },
+    nome: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: c.title,
+      marginBottom: 20,
+    },
 
-  campo: {
-    width: '100%',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.primary,
-    paddingVertical: 12,
-  },
-  campoLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.subtitle,
-    marginBottom: 2,
-  },
-  campoValor: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#333333',
-  },
+    campo: {
+      width: '100%',
+      borderTopWidth: 1,
+      borderTopColor: c.primary,
+      paddingVertical: 12,
+    },
+    campoLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: c.textSecondary,
+      marginBottom: 2,
+    },
+    campoValor: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: c.text,
+    },
 
-  editButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  editButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#333333',
-    letterSpacing: 0.5,
-  },
-  deleteButton: {
-    backgroundColor: COLORS.errorBg,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#F3C6C3',
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  deleteButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.error,
-    letterSpacing: 0.5,
-  },
-});
+    editButton: {
+      backgroundColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 20,
+    },
+    editButtonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: c.text,
+      letterSpacing: 0.5,
+    },
+    deleteButton: {
+      backgroundColor: c.errorBackground,
+      borderRadius: 14,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: c.errorBorder,
+    },
+    buttonDisabled: {
+      opacity: 0.7,
+    },
+    deleteButtonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: c.error,
+      letterSpacing: 0.5,
+    },
+  });
+}

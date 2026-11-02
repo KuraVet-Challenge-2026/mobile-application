@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,19 +16,22 @@ import type { RootStackParamList } from '../routes';
 import type { Pet } from '../types';
 import { usePets } from '../hooks/usePets';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type PetsListNavigationProp = NativeStackNavigationProp<RootStackParamList, 'PetsList'>;
 
-const COLORS = {
-  background: '#DDEBF7',
-  card: '#F2F7FC',
-  primary: '#C9DEF2',
-  title: '#1E4E79',
-  subtitle: '#4C7EA8',
-  error: '#B3261E',
-};
+type EstilosPetsList = ReturnType<typeof criarEstilos>;
 
-function PetCard({ pet, onPress }: { pet: Pet; onPress: () => void }) {
+function PetCard({
+  pet,
+  onPress,
+  styles,
+}: {
+  pet: Pet;
+  onPress: () => void;
+  styles: EstilosPetsList;
+}) {
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
       <View style={styles.avatar}>
@@ -50,6 +53,8 @@ function PetCard({ pet, onPress }: { pet: Pet; onPress: () => void }) {
 
 export default function PetsListScreen() {
   const navigation = useNavigation<PetsListNavigationProp>();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
   const { data: pets, isLoading, isError, error, isFetching, refetch } = usePets();
 
   const listaVazia = !isLoading && !isError && (!pets || pets.length === 0);
@@ -67,12 +72,13 @@ export default function PetsListScreen() {
           <PetCard
             pet={item}
             onPress={() => navigation.navigate('PetDetalhe', { idPet: item.idPet })}
+            styles={styles}
           />
         )}
         ListEmptyComponent={
           isLoading ? (
             <View style={styles.centerBox}>
-              <ActivityIndicator color={COLORS.primary} size="large" />
+              <ActivityIndicator color={colors.primary} size="large" />
             </View>
           ) : isError ? (
             <View style={styles.messageBox}>
@@ -105,103 +111,105 @@ export default function PetsListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  listContent: {
-    flexGrow: 1,
-    padding: 20,
-    paddingBottom: 96,
-  },
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    listContent: {
+      flexGrow: 1,
+      padding: 20,
+      paddingBottom: 96,
+    },
 
-  centerBox: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-  },
-  messageBox: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  emptyText: {
-    color: COLORS.subtitle,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+    centerBox: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 48,
+    },
+    messageBox: {
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+    },
+    errorText: {
+      color: c.error,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    emptyText: {
+      color: c.textSecondary,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
 
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.title,
-  },
-  cardInfo: {
-    flex: 1,
-    marginRight: 10,
-  },
-  cardNome: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.title,
-  },
-  cardDetalhe: {
-    marginTop: 3,
-    fontSize: 13,
-    color: COLORS.subtitle,
-  },
-  chevron: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#A3C1DA',
-  },
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderRadius: 18,
+      padding: 14,
+      marginBottom: 12,
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 12,
+    },
+    avatarText: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: c.title,
+    },
+    cardInfo: {
+      flex: 1,
+      marginRight: 10,
+    },
+    cardNome: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: c.title,
+    },
+    cardDetalhe: {
+      marginTop: 3,
+      fontSize: 13,
+      color: c.textSecondary,
+    },
+    chevron: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: c.iconeSutil,
+    },
 
-  addButton: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 20,
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1E4E79',
-    shadowOpacity: 0.18,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  addButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#333333',
-    letterSpacing: 0.5,
-  },
-});
+    addButton: {
+      position: 'absolute',
+      left: 20,
+      right: 20,
+      bottom: 20,
+      backgroundColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: c.title,
+      shadowOpacity: 0.18,
+      shadowOffset: { width: 0, height: 4 },
+      shadowRadius: 10,
+      elevation: 4,
+    },
+    addButtonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: c.text,
+      letterSpacing: 0.5,
+    },
+  });
+}
