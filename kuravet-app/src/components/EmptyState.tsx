@@ -6,17 +6,29 @@ import type { PaletaCores } from '../theme';
 
 type EmptyStateProps = {
   mensagem: string;
+  rotulo?: string;
+  /** Versão para uso dentro de seções de uma tela (sem tela cheia). */
+  compacto?: boolean;
 };
 
-export default function EmptyState({ mensagem }: EmptyStateProps) {
+export default function EmptyState({ mensagem, rotulo, compacto = false }: EmptyStateProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => criarEstilos(colors), [colors]);
+
+  if (compacto) {
+    return (
+      <View style={styles.card}>
+        {rotulo ? <Text style={styles.rotulo}>{rotulo}</Text> : null}
+        <Text style={styles.mensagem}>{mensagem}</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.card}>
-          <Text style={styles.rotulo}>Previsto para a Sprint 4</Text>
+          {rotulo ? <Text style={styles.rotulo}>{rotulo}</Text> : null}
           <Text style={styles.mensagem}>{mensagem}</Text>
         </View>
       </View>
