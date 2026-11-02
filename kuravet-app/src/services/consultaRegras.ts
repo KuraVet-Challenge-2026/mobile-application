@@ -1,12 +1,41 @@
-import type { Consulta } from '../types';
+import type { Consulta, StatusConsulta } from '../types';
 
 export const TIPO_CONSULTA_MAX_LENGTH = 40;
 
 const DATA_CONSULTA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
+const STATUS_CONSULTA_LABELS: Record<StatusConsulta, string> = {
+  SOLICITADA: 'Solicitada',
+  AGENDADA: 'Agendada',
+  REALIZADA: 'Realizada',
+  CANCELADA: 'Cancelada',
+  RECUSADA: 'Recusada',
+};
+
 
 export function podeCancelar(consulta: Consulta): boolean {
   return consulta.status === 'SOLICITADA' || consulta.status === 'AGENDADA';
+}
+
+
+export function rotuloStatusConsulta(status: StatusConsulta): string {
+  return STATUS_CONSULTA_LABELS[status];
+}
+
+
+export function proximasDatasConsulta(qtd: number): string[] {
+  const hoje = new Date();
+  const datas: string[] = [];
+
+  for (let i = 1; i <= qtd; i++) {
+    const data = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + i);
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    datas.push(`${ano}-${mes}-${dia}`);
+  }
+
+  return datas;
 }
 
 

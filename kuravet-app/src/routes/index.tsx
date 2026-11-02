@@ -32,7 +32,7 @@ export type RootStackParamList = {
   PetDetalhe: { idPet: number };
   EditarPet: { idPet: number };
   HistoricoDiagnostico: undefined;
-  Teleconsulta: undefined;
+  Teleconsulta: { idPet?: number; prioritaria?: boolean } | undefined;
   Perfil: undefined;
   Configuracoes: undefined;
 
