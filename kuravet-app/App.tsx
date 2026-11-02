@@ -5,9 +5,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import RootNavigator from './src/routes';
+import { navigationRef } from './src/routes/navigationRef';
 import { AuthProvider } from './src/auth/AuthContext';
 import { NAVIGATION_DARK_THEME, NAVIGATION_LIGHT_THEME, useAppTheme } from './src/theme';
-import { configurarNotificacoes, PreparadorNotificacoes } from './src/notifications';
+import {
+  configurarNotificacoes,
+  OuvinteToqueNotificacao,
+  PreparadorNotificacoes,
+} from './src/notifications';
 
 configurarNotificacoes();
 
@@ -32,7 +37,11 @@ export default function App() {
 
         <AuthProvider>
           <PreparadorNotificacoes />
-          <NavigationContainer theme={isDark ? NAVIGATION_DARK_THEME : NAVIGATION_LIGHT_THEME}>
+          <OuvinteToqueNotificacao />
+          <NavigationContainer
+            ref={navigationRef}
+            theme={isDark ? NAVIGATION_DARK_THEME : NAVIGATION_LIGHT_THEME}
+          >
             <RootNavigator />
           </NavigationContainer>
         </AuthProvider>
