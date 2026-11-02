@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -16,21 +16,16 @@ import type { RootStackParamList } from '../routes';
 import { useAuth } from '../auth/AuthContext';
 import { useTutor, useExcluirTutor } from '../hooks/useTutores';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type ConfiguracoesNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Configuracoes'>;
-
-const COLORS = {
-    background: '#DDEBF7',
-    card: '#F2F7FC',
-    title: '#1E4E79',
-    subtitle: '#4C7EA8',
-    error: '#B3261E',
-    errorBg: '#F9DEDC',
-};
 
 export default function ConfiguracoesScreen() {
     const navigation = useNavigation<ConfiguracoesNavigationProp>();
     const { usuario, logout } = useAuth();
+    const { colors } = useAppTheme();
+    const styles = useMemo(() => criarEstilos(colors), [colors]);
 
     const { data: tutor, isLoading, isError, error } = useTutor(usuario?.idTutor ?? undefined);
     const { mutate: excluirConta, isPending: isExcluindo } = useExcluirTutor();
@@ -99,7 +94,7 @@ export default function ConfiguracoesScreen() {
 
                         {isLoading && (
                             <View style={styles.centerBox}>
-                                <ActivityIndicator color={COLORS.title} />
+                                <ActivityIndicator color={colors.title} />
                             </View>
                         )}
 
@@ -152,7 +147,7 @@ export default function ConfiguracoesScreen() {
                                     disabled={isExcluindo}
                                 >
                                     {isExcluindo ? (
-                                        <ActivityIndicator color={COLORS.error} />
+                                        <ActivityIndicator color={colors.error} />
                                     ) : (
                                         <Text style={styles.deleteButtonText}>EXCLUIR CONTA</Text>
                                     )}
@@ -167,107 +162,109 @@ export default function ConfiguracoesScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    container: {
-        flexGrow: 1,
-        paddingHorizontal: 20,
-        paddingTop: 24,
-        paddingBottom: 40,
-    },
-    sectionHeader: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: COLORS.subtitle,
-        marginBottom: 12,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    sectionHeaderSpaced: {
-        marginTop: 8,
-    },
-    infoCard: {
-        backgroundColor: COLORS.card,
-        borderRadius: 20,
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-        marginBottom: 12,
-        shadowColor: '#1E4E79',
-        shadowOpacity: 0.05,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    infoLabel: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: COLORS.subtitle,
-        marginBottom: 4,
-        textTransform: 'uppercase',
-    },
-    infoValue: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: COLORS.title,
-    },
-    infoHint: {
-        fontSize: 11,
-        color: '#8CAECF',
-        marginTop: 4,
-    },
+function criarEstilos(c: PaletaCores) {
+    return StyleSheet.create({
+        safeArea: {
+            flex: 1,
+            backgroundColor: c.background,
+        },
+        container: {
+            flexGrow: 1,
+            paddingHorizontal: 20,
+            paddingTop: 24,
+            paddingBottom: 40,
+        },
+        sectionHeader: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: c.textSecondary,
+            marginBottom: 12,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+        },
+        sectionHeaderSpaced: {
+            marginTop: 8,
+        },
+        infoCard: {
+            backgroundColor: c.card,
+            borderRadius: 20,
+            paddingVertical: 16,
+            paddingHorizontal: 20,
+            marginBottom: 12,
+            shadowColor: c.title,
+            shadowOpacity: 0.05,
+            shadowOffset: { width: 0, height: 2 },
+            shadowRadius: 4,
+            elevation: 2,
+        },
+        infoLabel: {
+            fontSize: 12,
+            fontWeight: '700',
+            color: c.textSecondary,
+            marginBottom: 4,
+            textTransform: 'uppercase',
+        },
+        infoValue: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: c.title,
+        },
+        infoHint: {
+            fontSize: 11,
+            color: c.textTerciario,
+            marginTop: 4,
+        },
 
-    centerBox: {
-        paddingVertical: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    messageBox: {
-        backgroundColor: COLORS.card,
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 12,
-    },
-    errorText: {
-        color: COLORS.error,
-        fontSize: 14,
-        textAlign: 'center',
-        lineHeight: 20,
-    },
+        centerBox: {
+            paddingVertical: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        messageBox: {
+            backgroundColor: c.card,
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 12,
+        },
+        errorText: {
+            color: c.error,
+            fontSize: 14,
+            textAlign: 'center',
+            lineHeight: 20,
+        },
 
-    editButton: {
-        backgroundColor: '#C9DEF2',
-        borderRadius: 14,
-        paddingVertical: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 8,
-    },
-    editButtonText: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: '#333333',
-        letterSpacing: 0.5,
-    },
-    deleteButton: {
-        backgroundColor: COLORS.errorBg,
-        borderRadius: 14,
-        paddingVertical: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 12,
-        borderWidth: 1,
-        borderColor: '#F3C6C3',
-    },
-    buttonDisabled: {
-        opacity: 0.7,
-    },
-    deleteButtonText: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: COLORS.error,
-        letterSpacing: 0.5,
-    },
-});
+        editButton: {
+            backgroundColor: c.primary,
+            borderRadius: 14,
+            paddingVertical: 15,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 8,
+        },
+        editButtonText: {
+            fontSize: 15,
+            fontWeight: '800',
+            color: c.text,
+            letterSpacing: 0.5,
+        },
+        deleteButton: {
+            backgroundColor: c.errorBackground,
+            borderRadius: 14,
+            paddingVertical: 15,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 12,
+            borderWidth: 1,
+            borderColor: c.errorBorder,
+        },
+        buttonDisabled: {
+            opacity: 0.7,
+        },
+        deleteButtonText: {
+            fontSize: 15,
+            fontWeight: '800',
+            color: c.error,
+            letterSpacing: 0.5,
+        },
+    });
+}

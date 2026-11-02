@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../routes';
 
 import { useAuth } from '../auth/AuthContext';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type PerfilNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Perfil'>;
 
@@ -28,6 +30,8 @@ const getInitials = (name?: string | null) => {
 export default function PerfilScreen() {
   const navigation = useNavigation<PerfilNavigationProp>();
   const { usuario, logout } = useAuth();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   const nomeExibido = usuario?.nomeTutor || usuario?.username || 'Usuário KuraVet';
 
@@ -114,114 +118,116 @@ export default function PerfilScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#DDEBF7',
-  },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 32,
-    paddingBottom: 40,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  avatarContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#C9DEF2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-    shadowColor: '#1E4E79',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1E4E79',
-  },
-  userName: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1E4E79',
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#4C7EA8',
-    marginTop: 4,
-  },
-  menuContainer: {
-    backgroundColor: '#F2F7FC',
-    borderRadius: 24,
-    paddingVertical: 8,
-    marginBottom: 32,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  menuIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#DDEBF7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  iconFallbackText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#1E4E79',
-  },
-  menuTextWrap: {
-    flex: 1,
-  },
-  menuText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1E4E79',
-  },
-  menuSubText: {
-    fontSize: 12,
-    color: '#4C7EA8',
-    marginTop: 2,
-  },
-  chevron: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#A3C1DA',
-  },
-  logoutWrapper: {
-    marginTop: 'auto',
-    marginBottom: 20,
-    zIndex: 99,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FCE8E8',
-    paddingVertical: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#F9DEDC',
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#B3261E',
-  },
-});
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    container: {
+      flexGrow: 1,
+      paddingHorizontal: 20,
+      paddingTop: 32,
+      paddingBottom: 40,
+    },
+    profileHeader: {
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    avatarContainer: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 16,
+      borderWidth: 3,
+      borderColor: c.onPrimary,
+      shadowColor: c.title,
+      shadowOpacity: 0.1,
+      shadowOffset: { width: 0, height: 4 },
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    avatarText: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: c.title,
+    },
+    userName: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: c.title,
+    },
+    userEmail: {
+      fontSize: 14,
+      color: c.textSecondary,
+      marginTop: 4,
+    },
+    menuContainer: {
+      backgroundColor: c.card,
+      borderRadius: 24,
+      paddingVertical: 8,
+      marginBottom: 32,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+    },
+    menuIconWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: c.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 16,
+    },
+    iconFallbackText: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: c.title,
+    },
+    menuTextWrap: {
+      flex: 1,
+    },
+    menuText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: c.title,
+    },
+    menuSubText: {
+      fontSize: 12,
+      color: c.textSecondary,
+      marginTop: 2,
+    },
+    chevron: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: c.iconeSutil,
+    },
+    logoutWrapper: {
+      marginTop: 'auto',
+      marginBottom: 20,
+      zIndex: 99,
+    },
+    logoutButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.destaqueSuave,
+      paddingVertical: 16,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: c.errorBackground,
+    },
+    logoutButtonText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: c.error,
+    },
+  });
+}
