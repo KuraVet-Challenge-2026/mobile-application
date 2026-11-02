@@ -150,6 +150,8 @@ Valores de `KURAVET_API_BASE_URL` por ambiente:
 
 O `.env.local` é ignorado pelo Git e não deve ser versionado. Verificações: `npx tsc --noEmit` e `npm run lint`.
 
+No Expo Go do Android o app roda sem notificações, por uma limitação do SDK 57 ([expo/expo#52175](https://github.com/expo/expo/issues/52175)); as notificações são validadas no APK distribuído pelo Firebase App Distribution.
+
 ## 10. Publicação
 
 A publicação é feita manualmente pelo time.
