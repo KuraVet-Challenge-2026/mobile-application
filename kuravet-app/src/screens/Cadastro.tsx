@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -19,18 +19,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../routes';
 import { useAuth } from '../auth/AuthContext';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type CadastroNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cadastro'>;
-
-
-const COLORS = {
-  background: '#DDEBF7',
-  card: '#F2F7FC',
-  primary: '#C9DEF2',
-  text: '#333333',
-  textMuted: '#666666',
-};
-
 
 let logoSource: ImageSourcePropType | null = null;
 try {
@@ -39,12 +31,13 @@ try {
   logoSource = null;
 }
 
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Cadastro() {
   const navigation = useNavigation<CadastroNavigationProp>();
   const { cadastro } = useAuth();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
@@ -65,7 +58,7 @@ export default function Cadastro() {
       setErro('Preencha nome, CPF, usuário e senha para continuar.');
       return;
     }
-    
+
     if (cpf.replace(/\D/g, '').length !== 11) {
       setErro('Informe um CPF válido (11 dígitos).');
       return;
@@ -86,7 +79,6 @@ export default function Cadastro() {
 
     setIsLoading(true);
     try {
-
       await cadastro({
         nome: nome.trim(),
         cpf: cpf.trim(),
@@ -144,7 +136,7 @@ export default function Cadastro() {
                 value={nome}
                 onChangeText={setNome}
                 placeholder="Seu nome completo"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 autoCapitalize="words"
                 autoComplete="name"
                 textContentType="name"
@@ -159,7 +151,7 @@ export default function Cadastro() {
                 value={cpf}
                 onChangeText={setCpf}
                 placeholder="000.000.000-00"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'numeric'}
                 returnKeyType="next"
               />
@@ -172,7 +164,7 @@ export default function Cadastro() {
                 value={email}
                 onChangeText={setEmail}
                 placeholder="seuemail@exemplo.com"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
@@ -188,7 +180,7 @@ export default function Cadastro() {
                 value={telefone}
                 onChangeText={setTelefone}
                 placeholder="(11) 91234-5601"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
                 autoComplete="tel"
                 textContentType="telephoneNumber"
@@ -203,7 +195,7 @@ export default function Cadastro() {
                 value={username}
                 onChangeText={setUsername}
                 placeholder="Como você vai entrar no app"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 autoCapitalize="none"
                 autoComplete="username"
                 textContentType="username"
@@ -219,7 +211,7 @@ export default function Cadastro() {
                   value={senha}
                   onChangeText={setSenha}
                   placeholder="Mínimo 6 caracteres"
-                  placeholderTextColor={COLORS.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   secureTextEntry={!senhaVisivel}
                   autoCapitalize="none"
                   autoComplete="password-new"
@@ -239,7 +231,7 @@ export default function Cadastro() {
                 value={confirmarSenha}
                 onChangeText={setConfirmarSenha}
                 placeholder="Repita a senha"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry={!senhaVisivel}
                 autoCapitalize="none"
                 autoComplete="password-new"
@@ -258,7 +250,7 @@ export default function Cadastro() {
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color={COLORS.text} />
+                <ActivityIndicator color={colors.text} />
               ) : (
                 <Text style={styles.buttonText}>CADASTRAR</Text>
               )}
@@ -277,153 +269,155 @@ export default function Cadastro() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-  },
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 32,
+    },
 
-  // ---- Logo ----
-  logo: {
-    width: 96,
-    height: 96,
-    marginBottom: 16,
-  },
-  logoFallback: {
-    width: 96,
-    height: 96,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoFallbackText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.text,
-  },
+    // ---- Logo ----
+    logo: {
+      width: 96,
+      height: 96,
+      marginBottom: 16,
+    },
+    logoFallback: {
+      width: 96,
+      height: 96,
+      borderRadius: 28,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 16,
+    },
+    logoFallbackText: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: c.text,
+    },
 
-  // ---- Card central (flat shadow) ----
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: COLORS.card,
-    borderRadius: 28,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  subtitle: {
-    marginTop: 6,
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
+    // ---- Card central (flat shadow) ----
+    card: {
+      width: '100%',
+      maxWidth: 400,
+      backgroundColor: c.card,
+      borderRadius: 28,
+      padding: 24,
+      shadowColor: c.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    title: {
+      fontSize: 26,
+      fontWeight: '800',
+      color: c.text,
+      textAlign: 'center',
+    },
+    subtitle: {
+      marginTop: 6,
+      fontSize: 13,
+      color: c.textMuted,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
 
-  // ---- Formulário ----
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: COLORS.text,
-  },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: COLORS.text,
-  },
-  passwordToggle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginLeft: 8,
-  },
+    // ---- Formulário ----
+    fieldGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: c.text,
+      marginBottom: 6,
+    },
+    input: {
+      backgroundColor: c.card,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: c.text,
+    },
+    passwordRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+    },
+    passwordInput: {
+      flex: 1,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: c.text,
+    },
+    passwordToggle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: c.text,
+      marginLeft: 8,
+    },
 
-  // ---- Feedback de validação ----
-  errorText: {
-    color: '#B3261E',
-    fontSize: 13,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+    // ---- Feedback de validação ----
+    errorText: {
+      color: c.error,
+      fontSize: 13,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
 
-  // ---- Ações ----
-  button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.text,
-    letterSpacing: 0.5,
-  },
+    // ---- Ações ----
+    button: {
+      backgroundColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: {
+      opacity: 0.7,
+    },
+    buttonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: c.text,
+      letterSpacing: 0.5,
+    },
 
-  // ---- Rodapé ----
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
-  footerText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  footerLink: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.text,
-    textDecorationLine: 'underline',
-  },
-});
+    // ---- Rodapé ----
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: 24,
+    },
+    footerText: {
+      fontSize: 14,
+      color: c.text,
+    },
+    footerLink: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: c.text,
+      textDecorationLine: 'underline',
+    },
+  });
+}
