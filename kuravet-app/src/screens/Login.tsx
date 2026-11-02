@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -19,16 +19,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type { RootStackParamList } from '../routes';
 import { useAuth } from '../auth/AuthContext';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
-
-const COLORS = {
-  background: '#DDEBF7',
-  card: '#F2F7FC',
-  primary: '#C9DEF2',
-  text: '#333333',
-  textMuted: '#666666',
-};
 
 let logoSource: ImageSourcePropType | null = null;
 try {
@@ -40,6 +34,8 @@ try {
 export default function Login() {
   const navigation = useNavigation<LoginNavigationProp>();
   const { login } = useAuth();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
@@ -108,7 +104,7 @@ export default function Login() {
                 value={username}
                 onChangeText={setUsername}
                 placeholder="Seu usuário"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={colors.textMuted}
                 autoCapitalize="none"
                 autoComplete="username"
                 textContentType="username"
@@ -124,7 +120,7 @@ export default function Login() {
                   value={senha}
                   onChangeText={setSenha}
                   placeholder="Sua senha"
-                  placeholderTextColor={COLORS.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   secureTextEntry={!senhaVisivel}
                   autoCapitalize="none"
                   autoComplete="password"
@@ -147,7 +143,7 @@ export default function Login() {
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color={COLORS.text} />
+                <ActivityIndicator color={colors.text} />
               ) : (
                 <Text style={styles.buttonText}>ENTRAR</Text>
               )}
@@ -166,151 +162,153 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-  },
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 32,
+    },
 
-  logo: {
-    width: 140,
-    height: 140,
-    marginBottom: 16,
-  },
-  logoFallback: {
-    width: 140,
-    height: 140,
-    borderRadius: 36,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  logoFallbackText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.text,
-  },
+    logo: {
+      width: 140,
+      height: 140,
+      marginBottom: 16,
+    },
+    logoFallback: {
+      width: 140,
+      height: 140,
+      borderRadius: 36,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 16,
+    },
+    logoFallbackText: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: c.text,
+    },
 
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: COLORS.card,
-    borderRadius: 28,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  subtitle: {
-    marginTop: 6,
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
+    card: {
+      width: '100%',
+      maxWidth: 400,
+      backgroundColor: c.card,
+      borderRadius: 28,
+      padding: 24,
+      shadowColor: c.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    title: {
+      fontSize: 26,
+      fontWeight: '800',
+      color: c.text,
+      textAlign: 'center',
+    },
+    subtitle: {
+      marginTop: 6,
+      fontSize: 13,
+      color: c.textMuted,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
 
-  // ---- Formulário ----
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: COLORS.text,
-  },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: COLORS.text,
-  },
-  passwordToggle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginLeft: 8,
-  },
+    // ---- Formulário ----
+    fieldGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: c.text,
+      marginBottom: 6,
+    },
+    input: {
+      backgroundColor: c.card,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: c.text,
+    },
+    passwordRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+    },
+    passwordInput: {
+      flex: 1,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: c.text,
+    },
+    passwordToggle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: c.text,
+      marginLeft: 8,
+    },
 
-  // ---- Feedback de validação ----
-  errorText: {
-    color: '#B3261E',
-    fontSize: 13,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+    // ---- Feedback de validação ----
+    errorText: {
+      color: c.error,
+      fontSize: 13,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
 
-  // ---- Ações ----
-  button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.text,
-    letterSpacing: 0.5,
-  },
+    // ---- Ações ----
+    button: {
+      backgroundColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: {
+      opacity: 0.7,
+    },
+    buttonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: c.text,
+      letterSpacing: 0.5,
+    },
 
-  // ---- Rodapé ----
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
-  footerText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  footerLink: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.text,
-    textDecorationLine: 'underline',
-  },
-});
+    // ---- Rodapé ----
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: 24,
+    },
+    footerText: {
+      fontSize: 14,
+      color: c.text,
+    },
+    footerLink: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: c.text,
+      textDecorationLine: 'underline',
+    },
+  });
+}
