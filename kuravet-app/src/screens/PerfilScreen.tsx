@@ -81,6 +81,21 @@ export default function PerfilScreen() {
             </View>
             <Text style={styles.chevron}>&gt;</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('SobreApp')}
+          >
+            <View style={styles.menuIconWrap}>
+              <Text style={styles.iconFallbackText}>SA</Text>
+            </View>
+            <View style={styles.menuTextWrap}>
+              <Text style={styles.menuText}>Sobre o App</Text>
+              <Text style={styles.menuSubText}>Versão e informações</Text>
+            </View>
+            <Text style={styles.chevron}>&gt;</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Botão de Logout Funcional com Wrapper de Toque */}
