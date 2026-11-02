@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -20,16 +20,10 @@ import { useAuth } from '../auth/AuthContext';
 import { useTutor, useAtualizarTutor } from '../hooks/useTutores';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
 import type { TutorInput } from '../types';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type EditarPerfilNavigationProp = NativeStackNavigationProp<RootStackParamList, 'EditarPerfil'>;
-
-const COLORS = {
-  background: '#DDEBF7',
-  card: '#F2F7FC',
-  primary: '#C9DEF2',
-  text: '#333333',
-  textMuted: '#666666',
-};
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -37,6 +31,8 @@ export default function EditarPerfilScreen() {
   const navigation = useNavigation<EditarPerfilNavigationProp>();
   const { usuario } = useAuth();
   const idTutor = usuario?.idTutor ?? undefined;
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   const { data: tutor, isLoading, isError, error } = useTutor(idTutor);
   const { mutate, isPending } = useAtualizarTutor();
@@ -45,7 +41,7 @@ export default function EditarPerfilScreen() {
     <SafeAreaView style={styles.safeArea}>
       {isLoading ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator color={COLORS.primary} size="large" />
+          <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : isError || !tutor ? (
         <View style={styles.messageBox}>
@@ -93,6 +89,9 @@ function FormularioPerfil({
   isPending: boolean;
   onSubmit: (payload: TutorInput) => void;
 }) {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
+
   const [nome, setNome] = useState(tutor.nome);
   const [cpf, setCpf] = useState(tutor.cpf);
   const [telefone, setTelefone] = useState(tutor.telefone ?? '');
@@ -148,7 +147,7 @@ function FormularioPerfil({
               value={nome}
               onChangeText={setNome}
               placeholder="Seu nome completo"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="words"
               returnKeyType="next"
             />
@@ -161,7 +160,7 @@ function FormularioPerfil({
               value={cpf}
               onChangeText={setCpf}
               placeholder="000.000.000-00"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={colors.textMuted}
               keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'numeric'}
               returnKeyType="next"
             />
@@ -174,7 +173,7 @@ function FormularioPerfil({
               value={telefone}
               onChangeText={setTelefone}
               placeholder="(11) 91234-5601"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={colors.textMuted}
               keyboardType="phone-pad"
               returnKeyType="next"
             />
@@ -187,7 +186,7 @@ function FormularioPerfil({
               value={email}
               onChangeText={setEmail}
               placeholder="seuemail@exemplo.com"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               keyboardType="email-address"
               returnKeyType="next"
@@ -201,7 +200,7 @@ function FormularioPerfil({
               value={endereco}
               onChangeText={setEndereco}
               placeholder="Rua, número - Cidade/UF"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="words"
               returnKeyType="done"
               onSubmitEditing={handleSalvar}
@@ -217,7 +216,7 @@ function FormularioPerfil({
             disabled={isPending}
           >
             {isPending ? (
-              <ActivityIndicator color={COLORS.text} />
+              <ActivityIndicator color={colors.text} />
             ) : (
               <Text style={styles.buttonText}>SALVAR ALTERAÇÕES</Text>
             )}
@@ -228,97 +227,99 @@ function FormularioPerfil({
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  centerBox: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  messageBox: {
-    margin: 20,
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-  },
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+    },
+    centerBox: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    messageBox: {
+      margin: 20,
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+    },
 
-  card: {
-    backgroundColor: COLORS.card,
-    borderRadius: 28,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  subtitle: {
-    marginTop: 6,
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: 28,
+      padding: 24,
+      shadowColor: c.sombra,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: c.text,
+      textAlign: 'center',
+    },
+    subtitle: {
+      marginTop: 6,
+      fontSize: 13,
+      color: c.textMuted,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
 
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: COLORS.text,
-  },
+    fieldGroup: {
+      marginBottom: 16,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: c.text,
+      marginBottom: 6,
+    },
+    input: {
+      backgroundColor: c.card,
+      borderWidth: 1.5,
+      borderColor: c.primary,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: c.text,
+    },
 
-  errorText: {
-    color: '#B3261E',
-    fontSize: 13,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+    errorText: {
+      color: c.error,
+      fontSize: 13,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
 
-  button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.text,
-    letterSpacing: 0.5,
-  },
-});
+    button: {
+      backgroundColor: c.primary,
+      borderRadius: 14,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+    },
+    buttonDisabled: {
+      opacity: 0.7,
+    },
+    buttonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: c.text,
+      letterSpacing: 0.5,
+    },
+  });
+}

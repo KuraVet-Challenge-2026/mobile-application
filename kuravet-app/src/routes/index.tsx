@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -16,6 +16,8 @@ import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 import EditarPerfilScreen from '../screens/EditarPerfilScreen';
 import SobreAppScreen from '../screens/SobreAppScreen';
 import { useAuth } from '../auth/AuthContext';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 
 export type RootStackParamList = {
@@ -95,9 +97,12 @@ function AppStackNavigator() {
 }
 
 function TelaCarregando() {
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
+
   return (
     <View style={styles.carregando}>
-      <ActivityIndicator size="large" />
+      <ActivityIndicator size="large" color={colors.title} />
     </View>
   );
 }
@@ -112,10 +117,13 @@ export default function RootNavigator() {
   return status === 'autenticado' ? <AppStackNavigator /> : <AuthStackNavigator />;
 }
 
-const styles = StyleSheet.create({
-  carregando: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    carregando: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.background,
+    },
+  });
+}
