@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,8 +16,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../routes';
 import { usePet, useAtualizarPet } from '../hooks/usePets';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
-import FormularioPet, { FORM_PET_COLORS } from '../components/FormularioPet';
+import FormularioPet from '../components/FormularioPet';
 import type { PetInput } from '../types';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type EditarPetNavigationProp = NativeStackNavigationProp<RootStackParamList, 'EditarPet'>;
 type EditarPetRouteProp = RouteProp<RootStackParamList, 'EditarPet'>;
@@ -26,6 +28,8 @@ export default function EditarPetScreen() {
   const navigation = useNavigation<EditarPetNavigationProp>();
   const { params } = useRoute<EditarPetRouteProp>();
   const { idPet } = params;
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   const { data: pet, isLoading, isError, error } = usePet(idPet);
   const { mutate, isPending } = useAtualizarPet();
@@ -50,7 +54,7 @@ export default function EditarPetScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.centerBox}>
-          <ActivityIndicator color={FORM_PET_COLORS.primary} size="large" />
+          <ActivityIndicator color={colors.primary} size="large" />
         </View>
       </SafeAreaView>
     );
@@ -104,34 +108,36 @@ export default function EditarPetScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: FORM_PET_COLORS.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  centerBox: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  messageBox: {
-    margin: 20,
-    backgroundColor: FORM_PET_COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-  },
-  errorText: {
-    color: '#B3261E',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+    },
+    centerBox: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    messageBox: {
+      margin: 20,
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+    },
+    errorText: {
+      color: c.error,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+  });
+}

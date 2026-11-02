@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -14,8 +14,10 @@ import type { RootStackParamList } from '../routes';
 import { useAuth } from '../auth/AuthContext';
 import { useCriarPet } from '../hooks/usePets';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
-import FormularioPet, { FORM_PET_COLORS } from '../components/FormularioPet';
+import FormularioPet from '../components/FormularioPet';
 import type { PetInput } from '../types';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
 
 type CadastroPetNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CadastroPet'>;
 
@@ -23,6 +25,8 @@ export default function CadastroPet() {
   const navigation = useNavigation<CadastroPetNavigationProp>();
   const { usuario } = useAuth();
   const { mutate, isPending } = useCriarPet();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   function handleSubmit(payload: PetInput) {
     if (!usuario?.idTutor) {
@@ -64,17 +68,19 @@ export default function CadastroPet() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: FORM_PET_COLORS.background,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-});
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+    },
+  });
+}

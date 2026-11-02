@@ -24,6 +24,7 @@ export interface PaletaCores {
   destaqueSuave: string;
   textTerciario: string;
   iconeSutil: string;
+  textAccent: string;
   statusConsulta: Record<StatusConsulta, CorBadge>;
   urgencia: Record<NivelUrgencia, CorBadge>;
 }
