@@ -15,6 +15,7 @@ import PerfilScreen from '../screens/PerfilScreen';
 import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 import EditarPerfilScreen from '../screens/EditarPerfilScreen';
 import TriagemScreen from '../screens/TriagemScreen';
+import TriagemDetalheScreen from '../screens/TriagemDetalheScreen';
 import SobreAppScreen from '../screens/SobreAppScreen';
 import { useAuth } from '../auth/AuthContext';
 import { useAppTheme } from '../theme';
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   Home: undefined;
   CadastroPet: undefined;
   Triagem: { idPet?: number } | undefined;
+  TriagemDetalhe: { idTriagem: number };
 
   PetsList: undefined;
   PetDetalhe: { idPet: number };
@@ -62,6 +64,11 @@ function AppStackNavigator() {
         options={{ title: 'Cadastro de Pet' }}
       />
       <Stack.Screen name="Triagem" component={TriagemScreen} options={{ title: 'Triagem por IA' }} />
+      <Stack.Screen
+        name="TriagemDetalhe"
+        component={TriagemDetalheScreen}
+        options={{ title: 'Resultado da triagem' }}
+      />
       <Stack.Screen name="PetsList" component={PetsListScreen} options={{ title: 'Meus Pets' }} />
       <Stack.Screen
         name="PetDetalhe"
