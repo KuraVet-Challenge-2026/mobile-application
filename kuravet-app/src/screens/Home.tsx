@@ -19,7 +19,7 @@ import { useConsultas } from '../hooks/useConsultas';
 type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 type RotaSemParametro = {
-  [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never;
+  [K in keyof RootStackParamList]: undefined extends RootStackParamList[K] ? K : never;
 }[keyof RootStackParamList];
 
 const QUICK_ACTIONS: {
@@ -29,6 +29,12 @@ const QUICK_ACTIONS: {
   image?: any;
   route: RotaSemParametro;
 }[] = [
+    {
+      key: 'triagem',
+      label: 'Triagem IA',
+      image: require('../../assets/Animais.jpg'),
+      route: 'Triagem'
+    },
     {
       key: 'consulta',
       label: 'Nova Consulta',

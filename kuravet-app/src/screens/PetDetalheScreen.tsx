@@ -116,6 +116,14 @@ export default function PetDetalheScreen() {
         <TouchableOpacity
           style={styles.editButton}
           activeOpacity={0.8}
+          onPress={() => navigation.navigate('Triagem', { idPet })}
+        >
+          <Text style={styles.editButtonText}>FAZER TRIAGEM</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.editButton}
+          activeOpacity={0.8}
           onPress={() => navigation.navigate('EditarPet', { idPet })}
         >
           <Text style={styles.editButtonText}>EDITAR</Text>

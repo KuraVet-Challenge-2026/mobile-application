@@ -22,11 +22,11 @@ export function getApiErrorMessage(
       return data.mensagem;
     }
 
-    if (!error.response) {
-      return 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.';
-    }
     if (error.code === 'ECONNABORTED') {
       return 'O servidor demorou muito para responder. Tente novamente.';
+    }
+    if (!error.response) {
+      return 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.';
     }
   }
   return fallback;
