@@ -1,39 +1,58 @@
 /// <reference types="node" />
+import { execSync } from 'node:child_process';
 import type { ExpoConfig } from 'expo/config';
-
 
 const apiBaseUrl = process.env.KURAVET_API_BASE_URL ?? 'http://localhost:8080/api';
 
+if (process.env.EAS_BUILD && !process.env.KURAVET_API_BASE_URL) {
+  throw new Error(
+    'KURAVET_API_BASE_URL não definida: build EAS não pode cair no fallback localhost.',
+  );
+}
+
+function resolveCommitHash(): string {
+  if (process.env.EAS_BUILD_GIT_COMMIT_HASH) {
+    return process.env.EAS_BUILD_GIT_COMMIT_HASH;
+  }
+  try {
+    return execSync('git rev-parse HEAD').toString().trim();
+  } catch {
+    return 'desconhecido';
+  }
+}
+
 const config: ExpoConfig = {
-  name: 'kuravet-app',
+  name: 'KuraVet',
   slug: 'kuravet-app',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './assets/logo.png',
   scheme: 'kuravetapp',
   userInterfaceStyle: 'automatic',
   ios: {
-    icon: './assets/expo.icon',
+    icon: './assets/logo.png',
   },
   android: {
+    package: 'br.com.fiap.kuravet',
+    versionCode: 1,
     adaptiveIcon: {
-      backgroundColor: '#E6F4FE',
-      foregroundImage: './assets/images/android-icon-foreground.png',
-      backgroundImage: './assets/images/android-icon-background.png',
-      monochromeImage: './assets/images/android-icon-monochrome.png',
+      backgroundColor: '#DDEBF7',
+      foregroundImage: './assets/logo.png',
+      backgroundImage: './assets/logo.png',
+      monochromeImage: './assets/logo.png',
     },
     predictiveBackGestureEnabled: false,
   },
   web: {
     output: 'single',
-    favicon: './assets/images/favicon.png',
+    favicon: './assets/logo.png',
   },
   plugins: [
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#208AEF',
-        image: './assets/images/splash-icon.png',
+        backgroundColor: '#DDEBF7',
+        image: './assets/logo.png',
         imageWidth: 76,
       },
     ],
@@ -55,6 +74,8 @@ const config: ExpoConfig = {
   },
   extra: {
     apiBaseUrl,
+    commitHash: resolveCommitHash(),
+    buildProfile: process.env.EAS_BUILD_PROFILE ?? 'local',
   },
 };
 
