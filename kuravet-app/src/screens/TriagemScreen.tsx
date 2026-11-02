@@ -105,6 +105,14 @@ export default function TriagemScreen() {
           <ResultadoTriagem triagem={mutation.data} />
 
           <TouchableOpacity
+            style={styles.linkVerDetalhes}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('TriagemDetalhe', { idTriagem: mutation.data.idTriagem })}
+          >
+            <Text style={styles.linkVerDetalhesText}>Ver detalhes</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.buttonSecundario}
             activeOpacity={0.8}
             onPress={handleNovaTriagem}
@@ -321,5 +329,13 @@ function criarEstilos(c: PaletaCores) {
       borderColor: c.primary,
     },
     buttonSecundarioText: { fontSize: 15, fontWeight: '800', color: c.title, letterSpacing: 0.3 },
+
+    linkVerDetalhes: { marginTop: 14, alignItems: 'center' },
+    linkVerDetalhesText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: c.primary,
+      textDecorationLine: 'underline',
+    },
   });
 }
