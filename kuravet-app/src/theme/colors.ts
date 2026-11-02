@@ -17,6 +17,7 @@ export const LIGHT_COLORS: PaletaCores = {
   destaqueSuave: '#FCE8E8',
   textTerciario: '#8CAECF',
   iconeSutil: '#A3C1DA',
+  textAccent: '#2D6FA3',
   statusConsulta: {
     SOLICITADA: { background: '#DDEBF7', texto: '#2D6FA3' },
     AGENDADA: { background: '#C9DEF2', texto: '#1E4E79' },
@@ -49,6 +50,7 @@ export const DARK_COLORS: PaletaCores = {
   destaqueSuave: '#45201E',
   textTerciario: '#7FA3C4',
   iconeSutil: '#5E85A8',
+  textAccent: '#6FA8DC',
   statusConsulta: {
     SOLICITADA: { background: '#1C3350', texto: '#8FC2EC' },
     AGENDADA: { background: '#1F3B57', texto: '#AFD4F2' },

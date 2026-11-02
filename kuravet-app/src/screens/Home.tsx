@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -15,6 +15,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../routes';
 import type { Consulta } from '../types';
 import { useConsultas } from '../hooks/useConsultas';
+import { useAppTheme } from '../theme';
+import type { PaletaCores } from '../theme';
+import { formatarData } from '../utils/formatarData';
 
 type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -63,24 +66,34 @@ const STATUS_LABELS: Record<Consulta['status'], string> = {
   RECUSADA: 'Recusada',
 };
 
-const STATUS_STYLES: Record<Consulta['status'], { backgroundColor: string; color: string }> = {
-  SOLICITADA: { backgroundColor: '#DDEBF7', color: '#2D6FA3' },
-  AGENDADA: { backgroundColor: '#C9DEF2', color: '#1E4E79' },
-  REALIZADA: { backgroundColor: '#9FC6EA', color: '#12385C' },
-  CANCELADA: { backgroundColor: '#F9DEDC', color: '#B3261E' },
-  RECUSADA: { backgroundColor: '#F9DEDC', color: '#B3261E' },
-};
+type EstilosHome = ReturnType<typeof criarEstilos>;
 
-function StatusBadge({ status }: { status: Consulta['status'] }) {
-  const style = STATUS_STYLES[status];
+function StatusBadge({
+  status,
+  colors,
+  styles,
+}: {
+  status: Consulta['status'];
+  colors: PaletaCores;
+  styles: EstilosHome;
+}) {
+  const cor = colors.statusConsulta[status];
   return (
-    <View style={[styles.statusBadge, { backgroundColor: style.backgroundColor }]}>
-      <Text style={[styles.statusBadgeText, { color: style.color }]}>{STATUS_LABELS[status]}</Text>
+    <View style={[styles.statusBadge, { backgroundColor: cor.background }]}>
+      <Text style={[styles.statusBadgeText, { color: cor.texto }]}>{STATUS_LABELS[status]}</Text>
     </View>
   );
 }
 
-function ConsultaCard({ consulta }: { consulta: Consulta }) {
+function ConsultaCard({
+  consulta,
+  colors,
+  styles,
+}: {
+  consulta: Consulta;
+  colors: PaletaCores;
+  styles: EstilosHome;
+}) {
   return (
     <View style={styles.consultaCard}>
       <View style={styles.consultaThumb} />
@@ -94,16 +107,18 @@ function ConsultaCard({ consulta }: { consulta: Consulta }) {
         <Text style={styles.consultaDetail} numberOfLines={1}>
           {consulta.nomeVeterinario}
         </Text>
-        <Text style={styles.consultaData}>{consulta.dataConsulta}</Text>
+        <Text style={styles.consultaData}>{formatarData(consulta.dataConsulta)}</Text>
       </View>
 
-      <StatusBadge status={consulta.status} />
+      <StatusBadge status={consulta.status} colors={colors} styles={styles} />
     </View>
   );
 }
 
 export default function Home() {
   const navigation = useNavigation<HomeNavigationProp>();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => criarEstilos(colors), [colors]);
 
   const { data: consultas, isLoading, isError } = useConsultas();
 
@@ -173,7 +188,7 @@ export default function Home() {
 
           {isLoading && (
             <View style={styles.loadingBox}>
-              <ActivityIndicator color="#C9DEF2" size="large" />
+              <ActivityIndicator color={colors.primary} size="large" />
             </View>
           )}
 
@@ -197,7 +212,7 @@ export default function Home() {
           {!isLoading &&
             !isError &&
             consultas?.map((consulta) => (
-              <ConsultaCard key={consulta.idConsulta} consulta={consulta} />
+              <ConsultaCard key={consulta.idConsulta} consulta={consulta} colors={colors} styles={styles} />
             ))}
         </View>
       </ScrollView>
@@ -205,209 +220,211 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#DDEBF7',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 32,
-  },
+function criarEstilos(c: PaletaCores) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 32,
+    },
 
-  // ---- Header ----
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F2F7FC',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
-  greeting: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1E4E79',
-  },
-  greetingSubtitle: {
-    marginTop: 4,
-    fontSize: 13,
-    color: '#4C7EA8',
-  },
-  avatarPlaceholder: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#C9DEF2',
-    borderWidth: 2,
-    borderColor: '#F2F7FC',
-  },
+    // ---- Header ----
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 24,
+      borderBottomLeftRadius: 28,
+      borderBottomRightRadius: 28,
+    },
+    greeting: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: c.title,
+    },
+    greetingSubtitle: {
+      marginTop: 4,
+      fontSize: 13,
+      color: c.textSecondary,
+    },
+    avatarPlaceholder: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      backgroundColor: c.primary,
+      borderWidth: 2,
+      borderColor: c.card,
+    },
 
-  // ---- Sessões genéricas ----
-  section: {
-    paddingHorizontal: 20,
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E4E79',
-    marginBottom: 14,
-  },
+    // ---- Sessões genéricas ----
+    section: {
+      paddingHorizontal: 20,
+      marginTop: 24,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: c.title,
+      marginBottom: 14,
+    },
 
-  // ---- Ações rápidas ----
-  quickActionsRow: {
-    paddingRight: 8,
-    gap: 12,
-  },
-  quickActionCard: {
-    width: 104,
-    backgroundColor: '#F2F7FC',
-    borderRadius: 20,
-    paddingVertical: 16,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    marginRight: 12,
-    shadowColor: '#1E4E79',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  quickActionIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#C9DEF2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  quickActionImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  quickActionIcon: {
-    fontSize: 22,
-  },
-  quickActionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1E4E79',
-    textAlign: 'center',
-  },
+    // ---- Ações rápidas ----
+    quickActionsRow: {
+      paddingRight: 8,
+      gap: 12,
+    },
+    quickActionCard: {
+      width: 104,
+      backgroundColor: c.card,
+      borderRadius: 20,
+      paddingVertical: 16,
+      paddingHorizontal: 10,
+      alignItems: 'center',
+      marginRight: 12,
+      shadowColor: c.title,
+      shadowOpacity: 0.08,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    quickActionIconWrap: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 10,
+    },
+    quickActionImage: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+    },
+    quickActionIcon: {
+      fontSize: 22,
+    },
+    quickActionLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: c.title,
+      textAlign: 'center',
+    },
 
-  // ---- Banner de dica ----
-  tipBanner: {
-    marginHorizontal: 20,
-    marginTop: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F7FC',
-    borderRadius: 20,
-    padding: 16,
-  },
-  tipBannerImagePlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: '#C9DEF2',
-    marginRight: 14,
-    overflow: 'hidden', // Garante que a foto respeite as bordas arredondadas
-  },
-  tipBannerTextWrap: {
-    flex: 1,
-  },
-  tipBannerTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1E4E79',
-  },
-  tipBannerText: {
-    marginTop: 4,
-    fontSize: 12.5,
-    color: '#4C7EA8',
-    lineHeight: 18,
-  },
+    // ---- Banner de dica ----
+    tipBanner: {
+      marginHorizontal: 20,
+      marginTop: 24,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderRadius: 20,
+      padding: 16,
+    },
+    tipBannerImagePlaceholder: {
+      width: 56,
+      height: 56,
+      borderRadius: 16,
+      backgroundColor: c.primary,
+      marginRight: 14,
+      overflow: 'hidden', // Garante que a foto respeite as bordas arredondadas
+    },
+    tipBannerTextWrap: {
+      flex: 1,
+    },
+    tipBannerTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: c.title,
+    },
+    tipBannerText: {
+      marginTop: 4,
+      fontSize: 12.5,
+      color: c.textSecondary,
+      lineHeight: 18,
+    },
 
-  // ---- Feed de consultas ----
-  loadingBox: {
-    paddingVertical: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorBox: {
-    backgroundColor: '#F2F7FC',
-    borderRadius: 16,
-    padding: 16,
-  },
-  errorText: {
-    color: '#B3261E',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  emptyBox: {
-    backgroundColor: '#F2F7FC',
-    borderRadius: 16,
-    padding: 16,
-  },
-  emptyText: {
-    color: '#4C7EA8',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  consultaCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F7FC',
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 12,
-  },
-  consultaThumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#C9DEF2',
-    marginRight: 12,
-  },
-  consultaInfo: {
-    flex: 1,
-    marginRight: 10,
-  },
-  consultaInfoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  consultaPetNome: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1E4E79',
-    flexShrink: 1,
-  },
-  consultaDetail: {
-    marginTop: 3,
-    fontSize: 13,
-    color: '#2D6FA3',
-  },
-  consultaData: {
-    marginTop: 3,
-    fontSize: 12,
-    color: '#4C7EA8',
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-});
+    // ---- Feed de consultas ----
+    loadingBox: {
+      paddingVertical: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    errorBox: {
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+    },
+    errorText: {
+      color: c.error,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    emptyBox: {
+      backgroundColor: c.card,
+      borderRadius: 16,
+      padding: 16,
+    },
+    emptyText: {
+      color: c.textSecondary,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    consultaCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.card,
+      borderRadius: 18,
+      padding: 14,
+      marginBottom: 12,
+    },
+    consultaThumb: {
+      width: 48,
+      height: 48,
+      borderRadius: 14,
+      backgroundColor: c.primary,
+      marginRight: 12,
+    },
+    consultaInfo: {
+      flex: 1,
+      marginRight: 10,
+    },
+    consultaInfoHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    consultaPetNome: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: c.title,
+      flexShrink: 1,
+    },
+    consultaDetail: {
+      marginTop: 3,
+      fontSize: 13,
+      color: c.textAccent,
+    },
+    consultaData: {
+      marginTop: 3,
+      fontSize: 12,
+      color: c.textSecondary,
+    },
+    statusBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+    },
+    statusBadgeText: {
+      fontSize: 11,
+      fontWeight: '700',
+    },
+  });
+}
