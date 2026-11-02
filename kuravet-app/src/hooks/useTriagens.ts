@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { buscarTriagem, criarTriagem, listarTriagens } from '../api/triagens';
+import { notificarResultadoTriagem } from '../notifications';
 import type { TriagemInput, TriagemResponse } from '../types';
 
 const TRIAGENS_QUERY_KEY = ['triagens'] as const;
@@ -44,6 +45,10 @@ export function useCriarTriagem() {
     onSuccess: (triagem) => {
       queryClient.invalidateQueries({ queryKey: TRIAGENS_QUERY_KEY });
       queryClient.setQueryData([...TRIAGENS_QUERY_KEY, triagem.idTriagem], triagem);
+
+      notificarResultadoTriagem(triagem).catch((error) => {
+        console.warn('Não foi possível notificar o resultado da triagem.', error);
+      });
     },
   });
 }

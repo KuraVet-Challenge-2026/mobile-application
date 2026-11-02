@@ -60,6 +60,8 @@ const config: ExpoConfig = {
 
     'expo-image',
 
+    'expo-notifications',
+
     [
       'expo-build-properties',
       {
