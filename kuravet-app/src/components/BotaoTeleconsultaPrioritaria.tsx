@@ -24,7 +24,7 @@ export default function BotaoTeleconsultaPrioritaria({
     <TouchableOpacity
       style={styles.botao}
       activeOpacity={0.8}
-      onPress={() => navigation.navigate('Teleconsulta')}
+      onPress={() => navigation.navigate('Teleconsulta', { idPet, prioritaria: true })}
     >
       <Text style={styles.texto}>SOLICITAR TELECONSULTA PRIORITÁRIA</Text>
     </TouchableOpacity>
