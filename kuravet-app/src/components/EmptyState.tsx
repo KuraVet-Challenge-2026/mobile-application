@@ -6,9 +6,10 @@ import type { PaletaCores } from '../theme';
 
 type EmptyStateProps = {
   mensagem: string;
+  rotulo?: string;
 };
 
-export default function EmptyState({ mensagem }: EmptyStateProps) {
+export default function EmptyState({ mensagem, rotulo }: EmptyStateProps) {
   const { colors } = useAppTheme();
   const styles = useMemo(() => criarEstilos(colors), [colors]);
 
@@ -16,7 +17,7 @@ export default function EmptyState({ mensagem }: EmptyStateProps) {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.card}>
-          <Text style={styles.rotulo}>Previsto para a Sprint 4</Text>
+          {rotulo ? <Text style={styles.rotulo}>{rotulo}</Text> : null}
           <Text style={styles.mensagem}>{mensagem}</Text>
         </View>
       </View>
