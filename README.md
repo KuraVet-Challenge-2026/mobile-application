@@ -164,8 +164,11 @@ Notificações devem ser validadas no APK publicado; o Expo Go não é a prova f
 
 ## 11. Vídeo
 
-A preencher pelo time.
+Demonstração do APK publicado no Firebase App Distribution: https://youtu.be/BKm0kCUFv3g
 
 ## 12. Versão publicada
 
-A preencher pelo time.
+- **Versão:** 1.0.0 (versionCode 1), perfil EAS `preview`, publicada no Firebase App Distribution.
+- **Commit de referência:** `7800fe4fd62ffb30d1fd10c0dac6adaf3b589c3a` (tag `v1.0-sprint4`), o mesmo exibido na tela **Sobre o App**.
+- **API usada pelo APK:** https://kuravet-rm562396.azurewebsites.net/api
+- Commits posteriores a esse hash alteram apenas documentação.
