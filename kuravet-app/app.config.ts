@@ -24,6 +24,7 @@ function resolveCommitHash(): string {
 const config: ExpoConfig = {
   name: 'KuraVet',
   slug: 'kuravet-app',
+  owner: 'pedrohenriquee11',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/logo.png',
@@ -78,6 +79,9 @@ const config: ExpoConfig = {
     apiBaseUrl,
     commitHash: resolveCommitHash(),
     buildProfile: process.env.EAS_BUILD_PROFILE ?? 'local',
+    eas: {
+      projectId: '38671ca0-dac7-4f21-857c-3898f3b2dfa8',
+    },
   },
 };
 
